@@ -1,0 +1,45 @@
+# Compiled class files
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# Image files to ignore
+*.bmp
+*.tif
+*.raw
+*.jpg
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE/Editor files
+/.idea/
+*.iml
+*.iws
+.vscode/
+*.sublime*
+*.swp
+*~
+.project
+.classpath
+
+# Java build files
+/target/
+/build/
+out/
+
+# Log file
+*.log
+
+# If specific images are not to be ignored, you can use a negation rule before the general pattern
+# For example, if Lena.bmp should not be ignored:
+#!Lena.bmp
