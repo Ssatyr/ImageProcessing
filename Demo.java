@@ -18,7 +18,8 @@ public class Demo extends Component implements ActionListener {
         "Negative",
         "Rescale",
         "Shift",
-        "Random Shift"
+        "Random Shift",
+        "AddSubMulDivide"
     };
 
     static JFrame f = new JFrame("Image Processing Demo");
@@ -27,11 +28,12 @@ public class Demo extends Component implements ActionListener {
     int lastOp;
     int uno_reverse_card;
 
-    private BufferedImage bi, biFiltered, bib, bibFiltered;   // the input image saved as bi; aka śliniaczek//
+    private BufferedImage bi, biFiltered, bib, bibFiltered, biba, biba2, finalbiba;   // the input image saved as bi; aka śliniaczek//
     int w, h;
 
     private JSlider scalingSlider; // Slider for scaling factor
     private JDialog sliderDialog; // Dialog for the slider
+    private JDialog operationDialog; // Dialog for the arithmetic operation
     private JLabel sliderValueLabel; // Label to display slider value
     private int scalingFactor = 100; // Default scaling factor
      
@@ -50,6 +52,7 @@ public class Demo extends Component implements ActionListener {
                 biFiltered = bi = bi2;
             }
             initSliderDialog();
+            initArithmeticOperationDialog();
         } catch (IOException e) {      // deal with the situation that th image has problem;/
             System.out.println("Image could not be read");
             System.exit(1);
@@ -219,6 +222,82 @@ public class Demo extends Component implements ActionListener {
         return convertToBimage(ImageArray);  // Convert the array to BufferedImage
     }
 
+    public BufferedImage Addition(BufferedImage timg, BufferedImage timg2){
+        int width = timg.getWidth();
+        int height = timg.getHeight();
+
+        int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+        int[][][] ImageArray2 = convertToArray(timg2);          //  Convert the image to array
+
+        // Image Negative Operation:
+        for(int y=0; y<height; y++){
+            for(int x =0; x<width; x++){
+                ImageArray[x][y][1] = Math.max(Math.min(ImageArray[x][y][1]  + ImageArray2[x][y][1], 255), 0);  //r
+                ImageArray[x][y][2] = Math.max(Math.min(ImageArray[x][y][2]  + ImageArray2[x][y][2], 255), 0);  //g
+                ImageArray[x][y][3] = Math.max(Math.min(ImageArray[x][y][3]  + ImageArray2[x][y][3], 255), 0);  //b
+            }
+        }
+        
+        return convertToBimage(ImageArray);  // Convert the array to BufferedImage
+    }
+
+    public BufferedImage Subtraction(BufferedImage timg, BufferedImage timg2){
+        int width = timg.getWidth();
+        int height = timg.getHeight();
+
+        int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+        int[][][] ImageArray2 = convertToArray(timg2);          //  Convert the image to array
+
+        // Image Negative Operation:
+        for(int y=0; y<height; y++){
+            for(int x =0; x<width; x++){
+                ImageArray[x][y][1] = Math.max(Math.min(ImageArray[x][y][1]  - ImageArray2[x][y][1], 255), 0);  //r
+                ImageArray[x][y][2] = Math.max(Math.min(ImageArray[x][y][2]  - ImageArray2[x][y][2], 255), 0);  //g
+                ImageArray[x][y][3] = Math.max(Math.min(ImageArray[x][y][3]  - ImageArray2[x][y][3], 255), 0);  //b
+            }
+        }
+        
+        return convertToBimage(ImageArray);  // Convert the array to BufferedImage
+    }
+
+    public BufferedImage Multiplication(BufferedImage timg, BufferedImage timg2){
+        int width = timg.getWidth();
+        int height = timg.getHeight();
+
+        int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+        int[][][] ImageArray2 = convertToArray(timg2);          //  Convert the image to array
+
+        // Image Negative Operation:
+        for(int y=0; y<height; y++){
+            for(int x =0; x<width; x++){
+                ImageArray[x][y][1] = Math.max(Math.min(Math.round(ImageArray[x][y][1]  * ImageArray2[x][y][1]/255), 255), 0);  //r
+                ImageArray[x][y][2] = Math.max(Math.min(Math.round(ImageArray[x][y][2]  * ImageArray2[x][y][2]/255), 255), 0);  //g
+                ImageArray[x][y][3] = Math.max(Math.min(Math.round(ImageArray[x][y][3]  * ImageArray2[x][y][3]/255), 255), 0);  //b
+            }
+        }
+        
+        return convertToBimage(ImageArray);  // Convert the array to BufferedImage
+    }
+
+    public BufferedImage Dividing(BufferedImage timg, BufferedImage timg2){
+        int width = timg.getWidth();
+        int height = timg.getHeight();
+
+        int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+        int[][][] ImageArray2 = convertToArray(timg2);          //  Convert the image to array
+
+        // Image Negative Operation:
+        for(int y=0; y<height; y++){
+            for(int x =0; x<width; x++){
+                ImageArray[x][y][1] = Math.max(Math.min(Math.round(ImageArray[x][y][1]  / ImageArray2[x][y][1]*255), 255), 0);  //r
+                ImageArray[x][y][2] = Math.max(Math.min(Math.round(ImageArray[x][y][2]  / ImageArray2[x][y][2]*255), 255), 0);  //g
+                ImageArray[x][y][3] = Math.max(Math.min(Math.round(ImageArray[x][y][3]  / ImageArray2[x][y][3]*255), 255), 0);  //b
+            }
+        }
+        
+        return convertToBimage(ImageArray);  // Convert the array to BufferedImage
+    }
+
 
     //************************************
     //  You need to register your functioin here
@@ -257,6 +336,9 @@ public class Demo extends Component implements ActionListener {
                 if(bib != null){
                     bibFiltered = RandomShift(bib);
                 }
+                return;
+        case 5:
+                biFiltered = Addition(bi, bi);
                 return;
         }
     }
@@ -306,6 +388,51 @@ public class Demo extends Component implements ActionListener {
             scalingSlider.setValue(100); // Default scaling factor
         }
         sliderValueLabel.setText("Value: " + scalingSlider.getValue());
+    }
+
+    public void initArithmeticOperationDialog(){
+        operationDialog = new JDialog((Frame) null, "Adjust Arithmetic Operation", true); // Make it modal
+        operationDialog.setLayout(new FlowLayout());
+        operationDialog.setSize(300, 300); // Or adjust size as needed
+        JButton chooseFirst = new JButton("Choose First Image");
+        JButton chooseSecond = new JButton("Choose Second Image");
+
+        chooseFirst.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            int rval = chooser.showOpenDialog(this);
+            if (rval == JFileChooser.APPROVE_OPTION) {
+                File file = chooser.getSelectedFile();
+                try {
+                    biba = ImageIO.read(file);
+                    if (biba.getType() != BufferedImage.TYPE_INT_RGB) {
+                        BufferedImage biba = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+                    }
+                } catch (IOException ex) {
+                    System.out.println("Image could not be read");
+                    System.exit(1);
+                }
+            }
+        });
+        chooseSecond.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            int rval = chooser.showOpenDialog(this);
+            if (rval == JFileChooser.APPROVE_OPTION) {
+                File file = chooser.getSelectedFile();
+                try {
+                    biba2 = ImageIO.read(file);
+                    if (biba2.getType() != BufferedImage.TYPE_INT_RGB) {
+                        BufferedImage biba2 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+                    }
+                } catch (IOException ex) {
+                    System.out.println("Image could not be read");
+                    System.exit(1);
+                }
+            }
+        });
+
+        operationDialog.add(chooseFirst);
+        operationDialog.add(chooseSecond);
+        operationDialog.setLocationRelativeTo(f); // Center dialog relative to the frame
     }
 
     // @Override
@@ -403,9 +530,12 @@ public class Demo extends Component implements ActionListener {
                 } else if (opIndex == 3) {
                     updateSliderForOperation();
                     sliderDialog.setVisible(true);
+                } else if (opIndex == 5) {
+                    operationDialog.setVisible(true);
                 }
                 else{
                     sliderDialog.setVisible(false);
+                    operationDialog.setVisible(false);
                     repaint();
                 }
             }
@@ -465,4 +595,5 @@ public class Demo extends Component implements ActionListener {
         f.pack();
         f.setVisible(true);
     }
+
 }
