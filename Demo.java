@@ -453,6 +453,11 @@ public class Demo extends Component implements ActionListener {
                     finalbiba = Dividing(biba, biba2);
                     break;
             }
+            // Close the arithmetic operation dialog
+            operationDialog.dispose();
+
+            // Open a new window to display the finalbiba image
+            displayFinalImage(finalbiba);
         });
 
         operationDialog.add(chooseFirst);
@@ -463,17 +468,25 @@ public class Demo extends Component implements ActionListener {
         operationDialog.setLocationRelativeTo(f); // Center dialog relative to the frame
     }
 
-    // @Override
-    // public void stateChanged(ChangeEvent e) {
-    //     JSlider source = (JSlider)e.getSource();
-    //     if (!source.getValueIsAdjusting()) {
-    //         scalingFactor = (int)source.getValue();
-    //         sliderValueLabel.setText("Value: " + scalingFactor);
-    //         filterImage();
-    //     }
-    // }
 
-     public void actionPerformed(ActionEvent e) {
+    private void displayFinalImage(BufferedImage image) {
+        // Create a new frame to display the image
+        JFrame imageFrame = new JFrame("Processed Image");
+        imageFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        imageFrame.setLayout(new BorderLayout());
+    
+        // Convert BufferedImage to ImageIcon
+        ImageIcon imageIcon = new ImageIcon(image);
+        JLabel imageLabel = new JLabel(imageIcon);
+        imageFrame.add(imageLabel, BorderLayout.CENTER);
+    
+        // Pack the frame to the size of the image
+        imageFrame.pack();
+        imageFrame.setLocationRelativeTo(null);
+        imageFrame.setVisible(true);
+    }
+
+    public void actionPerformed(ActionEvent e) {
 
         if(e.getSource() instanceof JButton){
             if(e.getActionCommand().equals("Undo")){
