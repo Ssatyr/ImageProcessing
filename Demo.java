@@ -393,9 +393,12 @@ public class Demo extends Component implements ActionListener {
     public void initArithmeticOperationDialog(){
         operationDialog = new JDialog((Frame) null, "Adjust Arithmetic Operation", true); // Make it modal
         operationDialog.setLayout(new FlowLayout());
-        operationDialog.setSize(300, 300); // Or adjust size as needed
+        operationDialog.setSize(800, 150); // Or adjust size as needed
         JButton chooseFirst = new JButton("Choose First Image");
         JButton chooseSecond = new JButton("Choose Second Image");
+
+        String[] operations = {"Addition", "Subtraction", "Multiplication", "Division"};
+        JComboBox<String> operationList = new JComboBox<>(operations);
 
         chooseFirst.addActionListener(e -> {
             JFileChooser chooser = new JFileChooser();
@@ -404,6 +407,7 @@ public class Demo extends Component implements ActionListener {
                 File file = chooser.getSelectedFile();
                 try {
                     biba = ImageIO.read(file);
+                    chooseFirst.setText(file.getName());
                     if (biba.getType() != BufferedImage.TYPE_INT_RGB) {
                         BufferedImage biba = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
                     }
@@ -420,6 +424,7 @@ public class Demo extends Component implements ActionListener {
                 File file = chooser.getSelectedFile();
                 try {
                     biba2 = ImageIO.read(file);
+                    chooseFirst.setText(file.getName());
                     if (biba2.getType() != BufferedImage.TYPE_INT_RGB) {
                         BufferedImage biba2 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
                     }
@@ -430,8 +435,31 @@ public class Demo extends Component implements ActionListener {
             }
         });
 
+        JButton applyOperation = new JButton("Apply Operation");
+        applyOperation.addActionListener(e -> {
+            // Get selected operation
+            String operation = (String) operationList.getSelectedItem();
+            switch (operation) {
+                case "Addition":
+                    finalbiba = Addition(biba, biba2);
+                    break;
+                case "Subtraction":
+                    finalbiba = Subtraction(biba, biba2);
+                    break;
+                case "Multiplication":
+                    finalbiba = Multiplication(biba, biba2);
+                    break;
+                case "Division":
+                    finalbiba = Dividing(biba, biba2);
+                    break;
+            }
+        });
+
         operationDialog.add(chooseFirst);
         operationDialog.add(chooseSecond);
+        operationDialog.add(new JLabel("Select Operation:"));
+        operationDialog.add(operationList);
+        operationDialog.add(applyOperation);
         operationDialog.setLocationRelativeTo(f); // Center dialog relative to the frame
     }
 
