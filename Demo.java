@@ -19,7 +19,8 @@ public class Demo extends Component implements ActionListener {
         "Rescale",
         "Shift",
         "Random Shift",
-        "AddSubMulDivide"
+        "AddSubMulDivide",
+        "Bitwise NOT"
     };
 
     static JFrame f = new JFrame("Image Processing Demo");
@@ -33,6 +34,7 @@ public class Demo extends Component implements ActionListener {
 
     private JSlider scalingSlider; // Slider for scaling factor
     private JDialog sliderDialog; // Dialog for the slider
+    private JDialog BitwiseDialog; // Dialog for the bitwise operation
     private JDialog operationDialog; // Dialog for the arithmetic operation
     private JLabel sliderValueLabel; // Label to display slider value
     private int scalingFactor = 100; // Default scaling factor
@@ -53,6 +55,7 @@ public class Demo extends Component implements ActionListener {
             }
             initSliderDialog();
             initArithmeticOperationDialog();
+            initBitwiseOperationDialog();
         } catch (IOException e) {      // deal with the situation that th image has problem;/
             System.out.println("Image could not be read");
             System.exit(1);
@@ -298,6 +301,81 @@ public class Demo extends Component implements ActionListener {
         return convertToBimage(ImageArray);  // Convert the array to BufferedImage
     }
 
+    public BufferedImage BitwiseNOT(BufferedImage timg){
+        int width = timg.getWidth();
+        int height = timg.getHeight();
+
+        int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+
+        //Image Bitwise NOT Operation:
+        for(int y=0; y<height; y++){
+            for(int x =0; x<width; x++){
+                ImageArray[x][y][1] = ~ImageArray[x][y][1];  //r
+                ImageArray[x][y][2] = ~ImageArray[x][y][2];  //g
+                ImageArray[x][y][3] = ~ImageArray[x][y][3];  //b
+            }
+        }
+        
+        return convertToBimage(ImageArray);  // Convert the array to BufferedImage
+    }
+
+    public BufferedImage BitwiseAND(BufferedImage timg, BufferedImage timg2){
+        int width = timg.getWidth();
+        int height = timg.getHeight();
+
+        int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+        int[][][] ImageArray2 = convertToArray(timg2);          //  Convert the image to array
+
+        //Image Bitwise AND Operation:
+        for(int y=0; y<height; y++){
+            for(int x =0; x<width; x++){
+                ImageArray[x][y][1] = ImageArray[x][y][1] & ImageArray2[x][y][1];  //r
+                ImageArray[x][y][2] = ImageArray[x][y][2] & ImageArray2[x][y][2];  //g
+                ImageArray[x][y][3] = ImageArray[x][y][3] & ImageArray2[x][y][3];  //b
+            }
+        }
+        
+        return convertToBimage(ImageArray);  // Convert the array to BufferedImage
+    }
+
+    public BufferedImage BitwiseOR(BufferedImage timg, BufferedImage timg2){
+        int width = timg.getWidth();
+        int height = timg.getHeight();
+
+        int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+        int[][][] ImageArray2 = convertToArray(timg2);          //  Convert the image to array
+
+        //Image Bitwise OR Operation:
+        for(int y=0; y<height; y++){
+            for(int x =0; x<width; x++){
+                ImageArray[x][y][1] = ImageArray[x][y][1] | ImageArray2[x][y][1];  //r
+                ImageArray[x][y][2] = ImageArray[x][y][2] | ImageArray2[x][y][2];  //g
+                ImageArray[x][y][3] = ImageArray[x][y][3] | ImageArray2[x][y][3];  //b
+            }
+        }
+        
+        return convertToBimage(ImageArray);  // Convert the array to BufferedImage
+    }
+
+    public BufferedImage BitwiseXOR(BufferedImage timg, BufferedImage timg2){
+        int width = timg.getWidth();
+        int height = timg.getHeight();
+
+        int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+        int[][][] ImageArray2 = convertToArray(timg2);          //  Convert the image to array
+
+        //Image Bitwise XOR Operation:
+        for(int y=0; y<height; y++){
+            for(int x =0; x<width; x++){
+                ImageArray[x][y][1] = ImageArray[x][y][1] ^ ImageArray2[x][y][1];  //r
+                ImageArray[x][y][2] = ImageArray[x][y][2] ^ ImageArray2[x][y][2];  //g
+                ImageArray[x][y][3] = ImageArray[x][y][3] ^ ImageArray2[x][y][3];  //b
+            }
+        }
+        
+        return convertToBimage(ImageArray);  // Convert the array to BufferedImage
+    }
+
 
     //************************************
     //  You need to register your functioin here
@@ -336,9 +414,6 @@ public class Demo extends Component implements ActionListener {
                 if(bib != null){
                     bibFiltered = RandomShift(bib);
                 }
-                return;
-        case 5:
-                biFiltered = Addition(bi, bi);
                 return;
         }
     }
@@ -486,6 +561,84 @@ public class Demo extends Component implements ActionListener {
         imageFrame.setVisible(true);
     }
 
+    public void initBitwiseOperationDialog(){
+        BitwiseDialog = new JDialog((Frame) null, "Adjust Bitwise Operation", true); // Make it modal
+        BitwiseDialog.setLayout(new FlowLayout());
+        BitwiseDialog.setSize(800, 150); // Or adjust size as needed
+        JButton chooseFirst = new JButton("Choose First Image");
+        JButton chooseSecond = new JButton("Choose Second Image");
+
+        String[] operations = {"NOT", "AND", "OR", "XOR"};
+        JComboBox<String> operationList = new JComboBox<>(operations);
+
+        chooseFirst.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            int rval = chooser.showOpenDialog(this);
+            if (rval == JFileChooser.APPROVE_OPTION) {
+                File file = chooser.getSelectedFile();
+                try {
+                    biba = ImageIO.read(file);
+                    chooseFirst.setText(file.getName());
+                    if (biba.getType() != BufferedImage.TYPE_INT_RGB) {
+                        BufferedImage biba = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+                    }
+                } catch (IOException ex) {
+                    System.out.println("Image could not be read");
+                    System.exit(1);
+                }
+            }
+        });
+        chooseSecond.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            int rval = chooser.showOpenDialog(this);
+            if (rval == JFileChooser.APPROVE_OPTION) {
+                File file = chooser.getSelectedFile();
+                try {
+                    biba2 = ImageIO.read(file);
+                    chooseFirst.setText(file.getName());
+                    if (biba2.getType() != BufferedImage.TYPE_INT_RGB) {
+                        BufferedImage biba2 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+                    }
+                } catch (IOException ex) {
+                    System.out.println("Image could not be read");
+                    System.exit(1);
+                }
+            }
+        });
+
+        JButton applyOperation = new JButton("Apply Operation");
+        applyOperation.addActionListener(e -> {
+            // Get selected operation
+            String operation = (String) operationList.getSelectedItem();
+            switch (operation) {
+                case "NOT":
+                    finalbiba = BitwiseNOT(biba);
+                    break;
+                case "AND":
+                    finalbiba = BitwiseAND(biba, biba2);
+                    break;
+                case "OR":
+                    finalbiba = BitwiseOR(biba, biba2);
+                    break;
+                case "XOR":
+                    finalbiba = BitwiseXOR(biba, biba2);
+                    break;
+            }
+            // Close the arithmetic operation dialog
+            BitwiseDialog.dispose();
+
+            // Open a new window to display the finalbiba image
+            displayFinalImage(finalbiba);
+        });
+
+        BitwiseDialog.add(chooseFirst);
+        BitwiseDialog.add(chooseSecond);
+        BitwiseDialog.add(new JLabel("Select Operation:"));
+        BitwiseDialog.add(operationList);
+        BitwiseDialog.add(applyOperation);
+        BitwiseDialog.setLocationRelativeTo(f); // Center dialog relative to the frame
+    }
+
     public void actionPerformed(ActionEvent e) {
 
         if(e.getSource() instanceof JButton){
@@ -573,6 +726,8 @@ public class Demo extends Component implements ActionListener {
                     sliderDialog.setVisible(true);
                 } else if (opIndex == 5) {
                     operationDialog.setVisible(true);
+                } else if (opIndex == 6) {
+                    BitwiseDialog.setVisible(true);
                 }
                 else{
                     sliderDialog.setVisible(false);
