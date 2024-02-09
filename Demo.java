@@ -20,7 +20,8 @@
             "Shift",
             "Random Shift",
             "AddSubMulDivide",
-            "NOTANDORXORROI"
+            "NOT",
+            "ANDORXORROI"
         };
 
         static JFrame f = new JFrame("Image Processing Demo");
@@ -301,22 +302,30 @@
             return convertToBimage(ImageArray);  // Convert the array to BufferedImage
         }
 
-        public BufferedImage BitwiseNOT(BufferedImage timg){
+        public BufferedImage BitwiseNOT(BufferedImage timg) {
             int width = timg.getWidth();
             int height = timg.getHeight();
-
-            int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
-
-            //Image Bitwise NOT Operation:
-            for(int y=0; y<height; y++){
-                for(int x =0; x<width; x++){
-                    ImageArray[x][y][1] = ~ImageArray[x][y][1];  //r
-                    ImageArray[x][y][2] = ~ImageArray[x][y][2];  //g
-                    ImageArray[x][y][3] = ~ImageArray[x][y][3];  //b
+            BufferedImage resultImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    int p = timg.getRGB(x, y);
+                    int a = (p>>24) & 0xff; // Extract the alpha channel
+                    int r = (p>>16) & 0xff; // Extract the red channel
+                    int g = (p>>8) & 0xff;  // Extract the green channel
+                    int b = p & 0xff;       // Extract the blue channel
+        
+                    // Apply NOT operation only to the color channels
+                    r = 255 - r;
+                    g = 255 - g;
+                    b = 255 - b;
+        
+                    // Reassemble the pixel with the original alpha channel
+                    p = (a<<24) | (r<<16) | (g<<8) | b;
+                    resultImg.setRGB(x, y, p);
                 }
             }
-            
-            return convertToBimage(ImageArray);  // Convert the array to BufferedImage
+            return resultImg;
         }
 
         public BufferedImage BitwiseAND(BufferedImage timg, BufferedImage timg2){
@@ -490,6 +499,12 @@
                         bibFiltered = RandomShift(bib);
                     }
                     return;
+            case 6:
+                    biFiltered = BitwiseNOT(bi);
+                    if(bib != null){
+                        bibFiltered = BitwiseNOT(bib);
+                    }
+                    return;
             }
         }
 
@@ -643,7 +658,7 @@
             JButton chooseFirst = new JButton("Choose First Image");
             JButton chooseSecond = new JButton("Choose Second Image");
 
-            String[] operations = {"NOT", "AND", "OR", "XOR", "ROI"};
+            String[] operations = {"AND", "OR", "XOR", "ROI"};
             JComboBox<String> operationList = new JComboBox<>(operations);
 
             chooseFirst.addActionListener(e -> {
@@ -686,9 +701,6 @@
                 // Get selected operation
                 String operation = (String) operationList.getSelectedItem();
                 switch (operation) {
-                    case "NOT":
-                        finalbiba = BitwiseNOT(biba);
-                        break;
                     case "AND":
                         finalbiba = BitwiseAND(biba, biba2);
                         break;
@@ -804,7 +816,7 @@
                         sliderDialog.setVisible(true);
                     } else if (opIndex == 5) {
                         operationDialog.setVisible(true);
-                    } else if (opIndex == 6) {
+                    } else if (opIndex == 7) {
                         BitwiseDialog.setVisible(true);
                     }
                     else{
