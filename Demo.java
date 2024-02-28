@@ -25,7 +25,8 @@
             "Logarithmic",
             "Power-Low",
             "Random Look-Up Table",
-            "Bit Plane Slice"
+            "Bit Plane Slice",
+            "Histogram & Normalization",
         };
 
         static JFrame f = new JFrame("Image Processing Demo");
@@ -542,6 +543,72 @@
             return convertToBimage(ImageArray);  // Convert the array to BufferedImage
         }
 
+        public BufferedImage FindingHistogram(BufferedImage timg){
+
+            int width = timg.getWidth();
+            int height = timg.getHeight();
+
+            int[][][] ImageArray = convertToArray(timg); 
+
+            int[] histogramR = new int[256];
+            int[] histogramG = new int[256];
+            int[] histogramB = new int[256];
+
+            // Finding Histogram
+
+            for(int y=0; y<height; y++){
+                for(int x =0; x<width; x++){
+                    histogramR[ImageArray[x][y][1]]++;  //r
+                    histogramG[ImageArray[x][y][2]]++;  //g
+                    histogramB[ImageArray[x][y][3]]++;  //b
+                }
+            }
+
+            int[] cdfR = computeCDF(histogramR);
+            int[] cdfG = computeCDF(histogramG);
+            int[] cdfB = computeCDF(histogramB);
+
+            // Normalization
+            for (int i = 0; i < 256; i++) {
+                histogramR[i] = (int)(255 * (histogramR[i] / (double)(w * h)));
+                histogramG[i] = (int)(255 * (histogramG[i] / (double)(w * h)));
+                histogramB[i] = (int)(255 * (histogramB[i] / (double)(w * h)));
+            }
+
+            //Equalisation
+            for(int y=0; y<height; y++){
+                for(int x =0; x<width; x++){
+                    ImageArray[x][y][1] = cdfR[ImageArray[x][y][1]];  //r
+                    ImageArray[x][y][2] = cdfG[ImageArray[x][y][2]];  //g
+                    ImageArray[x][y][3] = cdfB[ImageArray[x][y][3]];  //b
+                }
+            }
+
+            return convertToBimage(ImageArray);  // Convert the array to BufferedImage
+        }
+
+        public int[] computeCDF(int[] histogram) {
+            int[] cdf = new int[256];
+            int cum = 0;
+            int minValue = 0;
+            int size = histogram.length;
+        
+            for (int i = 0; i < size; i++) {
+                cum += histogram[i];
+                cdf[i] = cum;
+                if (minValue == 0 && cum > 0) {
+                    minValue = cum;
+                }
+            }
+        
+            // Normalize CDF to 0-255 range
+            for (int i = 0; i < size; i++) {
+                cdf[i] = Math.round(((cdf[i] - minValue) / (float)(cum - minValue)) * 255);
+            }
+        
+            return cdf;
+        }
+
         //************************************
         //  You need to register your functioin here
         //************************************
@@ -608,6 +675,12 @@
                     biFiltered = BitPlaneSlice(bi, scalingFactor);
                     if(bib != null){
                         bibFiltered = BitPlaneSlice(bib, scalingFactor);
+                    }
+                    return;
+            case 12:
+                    biFiltered = FindingHistogram(bi);
+                    if(bib != null){
+                        bibFiltered = FindingHistogram(bib);
                     }
                     return;
             }
