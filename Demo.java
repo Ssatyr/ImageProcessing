@@ -27,6 +27,7 @@
             "Random Look-Up Table",
             "Bit Plane Slice",
             "Histogram & Normalization",
+            "Image Convolutions"
         };
 
         static JFrame f = new JFrame("Image Processing Demo");
@@ -42,6 +43,7 @@
         private JDialog sliderDialog; // Dialog for the slider
         private JDialog BitwiseDialog; // Dialog for the bitwise operation
         private JDialog operationDialog; // Dialog for the arithmetic operation
+        private JDialog convolutionDialog; // Dialog for the convolution matrix
         private JLabel sliderValueLabel; // Label to display slider value
         private int scalingFactor = 100; // Default scaling factor
         
@@ -62,6 +64,7 @@
                 initSliderDialog();
                 initArithmeticOperationDialog();
                 initBitwiseOperationDialog();
+                initConvolutionDialog();
             } catch (IOException e) {      // deal with the situation that th image has problem;/
                 System.out.println("Image could not be read");
                 System.exit(1);
@@ -609,6 +612,49 @@
             return cdf;
         }
 
+        public BufferedImage Averaging(BufferedImage timg){
+            int width = timg.getWidth();
+            int height = timg.getHeight();
+
+            int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+
+            int[][] kernel = {
+                {1, 1, 1},
+                {1, 1, 1},
+                {1, 1, 1}
+            };
+
+            int kernelSize = 3;
+            int kernelSum = 9;
+
+            int[][][] resultArray = new int[width][height][4];
+
+            for (int y = 1; y < height - 1; y++) {
+                for (int x = 1; x < width - 1; x++) {
+                    int sumR = 0;
+                    int sumG = 0;
+                    int sumB = 0;
+
+                    for (int ky = 0; ky < kernelSize; ky++) {
+                        for (int kx = 0; kx < kernelSize; kx++) {
+                            int pixel = ImageArray[x + kx - 1][y + ky - 1][1];
+                            sumR += kernel[ky][kx] * pixel;
+                            pixel = ImageArray[x + kx - 1][y + ky - 1][2];
+                            sumG += kernel[ky][kx] * pixel;
+                            pixel = ImageArray[x + kx - 1][y + ky - 1][3];
+                            sumB += kernel[ky][kx] * pixel;
+                        }
+                    }
+
+                    resultArray[x][y][1] = sumR / kernelSum;
+                    resultArray[x][y][2] = sumG / kernelSum;
+                    resultArray[x][y][3] = sumB / kernelSum;
+                }
+            }
+
+            return convertToBimage(resultArray);  // Convert the array to BufferedImage
+        }
+
         //************************************
         //  You need to register your functioin here
         //************************************
@@ -684,6 +730,62 @@
                     }
                     return;
             }
+        }
+
+        public void initConvolutionDialog(){
+            convolutionDialog = new JDialog((Frame) null, "Adjust Convolution Matrix", true); // Make it modal
+            convolutionDialog.setLayout(new FlowLayout());
+            convolutionDialog.setSize(300, 150); // Or adjust size as needed
+
+            String[] operations = {"Averaging", "Weighted Averaging", "4-n Laplacian", "8-n Laplacian", "4-n Laplacian Enhanced", "8-n Laplacian Enhanced", "Roberts", "Sobel X", "Sobel Y", "Gaussian", "LaPlacian of Gaussian"};
+            JComboBox<String> operationList = new JComboBox<>(operations);
+
+            JButton applyConvolution = new JButton("Apply Convolution");
+            applyConvolution.addActionListener(e -> {
+                String operation = (String) operationList.getSelectedItem();
+                switch (operation) {
+                    case "Averaging":
+                        biFiltered = Averaging(bi);
+                        if(bib != null){
+                            bibFiltered = Averaging(bib);
+                        }
+                        break;
+                    case "Weighted Averaging":
+                        
+                        break;
+                    case "4-n Laplacian":
+                        
+                        break; 
+                    case "8-n Laplacian":
+                            
+                        break;
+                    case "4-n Laplacian Enhanced":
+                                
+                        break;
+                    case "8-n Laplacian Enhanced":
+                                    
+                        break;
+                    case "Roberts":
+                                        
+                        break;
+                    case "Sobel X":
+                                            
+                        break;
+                    case "Sobel Y":
+
+                        break;
+                    case "Gaussian":
+
+                        break;
+                    case "LaPlacian of Gaussian":
+
+                        break;
+                }
+                repaint();
+            });
+            convolutionDialog.add(operationList);
+            convolutionDialog.add(applyConvolution);
+            convolutionDialog.setLocationRelativeTo(f); // Center dialog relative to the frame
         }
 
         public void initSliderDialog(){
@@ -1013,6 +1115,8 @@
                     }   else if (opIndex == 11) {
                         updateSliderForOperation();
                         sliderDialog.setVisible(true);
+                    }   else if(opIndex == 13){
+                        convolutionDialog.setVisible(true);
                     }
                     else{
                         sliderDialog.setVisible(false);
