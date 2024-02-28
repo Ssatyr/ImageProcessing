@@ -612,20 +612,20 @@
             return cdf;
         }
 
-        public BufferedImage Averaging(BufferedImage timg){
+        public BufferedImage Convolution(BufferedImage timg, int[][] kernel){
             int width = timg.getWidth();
             int height = timg.getHeight();
 
             int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
 
-            int[][] kernel = {
-                {1, 1, 1},
-                {1, 1, 1},
-                {1, 1, 1}
-            };
-
             int kernelSize = 3;
-            int kernelSum = 9;
+            int kernelSum = 0;
+
+            for (int y = 0; y < kernelSize; y++) {
+                for (int x = 0; x < kernelSize; x++) {
+                    kernelSum += kernel[y][x];
+                }
+            }
 
             int[][][] resultArray = new int[width][height][4];
 
@@ -634,26 +634,94 @@
                     int sumR = 0;
                     int sumG = 0;
                     int sumB = 0;
-
+            
                     for (int ky = 0; ky < kernelSize; ky++) {
                         for (int kx = 0; kx < kernelSize; kx++) {
-                            int pixel = ImageArray[x + kx - 1][y + ky - 1][1];
-                            sumR += kernel[ky][kx] * pixel;
-                            pixel = ImageArray[x + kx - 1][y + ky - 1][2];
-                            sumG += kernel[ky][kx] * pixel;
-                            pixel = ImageArray[x + kx - 1][y + ky - 1][3];
-                            sumB += kernel[ky][kx] * pixel;
+                            int pixelR = ImageArray[x + kx - 1][y + ky - 1][1];
+                            int pixelG = ImageArray[x + kx - 1][y + ky - 1][2];
+                            int pixelB = ImageArray[x + kx - 1][y + ky - 1][3];
+                            sumR += kernel[ky][kx] * pixelR;
+                            sumG += kernel[ky][kx] * pixelG;
+                            sumB += kernel[ky][kx] * pixelB;
                         }
                     }
-
-                    resultArray[x][y][1] = sumR / kernelSum;
-                    resultArray[x][y][2] = sumG / kernelSum;
-                    resultArray[x][y][3] = sumB / kernelSum;
+            
+                    if (kernelSum != 0) { // Avoid division by zero
+                        resultArray[x][y][1] = Math.abs(sumR) / kernelSum;
+                        resultArray[x][y][2] = Math.abs(sumG) / kernelSum;
+                        resultArray[x][y][3] = Math.abs(sumB) / kernelSum;
+                    } else { // In case kernelSum is 0, assign the absolute values directly
+                        resultArray[x][y][1] = Math.abs(sumR);
+                        resultArray[x][y][2] = Math.abs(sumG);
+                        resultArray[x][y][3] = Math.abs(sumB);
+                    }
                 }
             }
 
             return convertToBimage(resultArray);  // Convert the array to BufferedImage
         }
+
+        public BufferedImage applyRobertsOperator(BufferedImage timg) {
+            int width = timg.getWidth();
+            int height = timg.getHeight();
+        
+            int[][][] ImageArray = convertToArray(timg); // Convert the image to array
+        
+            // Define the Roberts kernels
+            int[][] robertsKernelX = {
+                {0, 0, 0},
+                {0, 0, -1},
+                {0, 1, 0}
+            };
+        
+            int[][] robertsKernelY = {
+                {0, 0, 0},
+                {0, -1, 0},
+                {0, 0, 1}
+            };
+        
+            int[][][] resultArray = new int[width][height][4];
+        
+            // Apply the Roberts operator
+            for (int y = 0; y < height - 1; y++) {
+                for (int x = 0; x < width - 1; x++) {
+                    int sumRx = 0;
+                    int sumRy = 0;
+                    int sumGx = 0;
+                    int sumGy = 0;
+                    int sumBx = 0;
+                    int sumBy = 0;
+        
+                    // Apply kernels to the image
+                    for (int ky = 0; ky < 2; ky++) {
+                        for (int kx = 0; kx < 2; kx++) {
+                            // Ensure we don't go out of bounds
+                            if ((x + kx < width) && (y + ky < height)) {
+                                int pixelR = ImageArray[x + kx][y + ky][1];
+                                int pixelG = ImageArray[x + kx][y + ky][2];
+                                int pixelB = ImageArray[x + kx][y + ky][3];
+                                sumRx += robertsKernelX[ky][kx] * pixelR;
+                                sumRy += robertsKernelY[ky][kx] * pixelR;
+                                sumGx += robertsKernelX[ky][kx] * pixelG;
+                                sumGy += robertsKernelY[ky][kx] * pixelG;
+                                sumBx += robertsKernelX[ky][kx] * pixelB;
+                                sumBy += robertsKernelY[ky][kx] * pixelB;
+                            }
+                        }
+                    }
+        
+                    int magnitudeR = (int)Math.sqrt(sumRx * sumRx + sumRy * sumRy);
+                    int magnitudeG = (int)Math.sqrt(sumGx * sumGx + sumGy * sumGy);
+                    int magnitudeB = (int)Math.sqrt(sumBx * sumBx + sumBy * sumBy);
+        
+                    resultArray[x][y][1] = Math.min(Math.abs(magnitudeR), 255);
+                    resultArray[x][y][2] = Math.min(Math.abs(magnitudeG), 255);
+                    resultArray[x][y][3] = Math.min(Math.abs(magnitudeB), 255);
+                }
+            }
+        
+            return convertToBimage(resultArray); 
+        }        
 
         //************************************
         //  You need to register your functioin here
@@ -745,34 +813,65 @@
                 String operation = (String) operationList.getSelectedItem();
                 switch (operation) {
                     case "Averaging":
-                        biFiltered = Averaging(bi);
+                        int[][] kernel = {{1,1,1},{1,1,1},{1,1,1}};
+                        biFiltered = Convolution(bi, kernel);
                         if(bib != null){
-                            bibFiltered = Averaging(bib);
+                            bibFiltered = Convolution(bib, kernel);
                         }
                         break;
                     case "Weighted Averaging":
-                        
-                        break;
+                        int[][] weightedKernel = {{1,2,1},{2,4,2},{1,2,1}};
+                        biFiltered = Convolution(bi, weightedKernel);
+                        if(bib != null){
+                            bibFiltered = Convolution(bib, weightedKernel);
+                        }
                     case "4-n Laplacian":
-                        
+                        int[][] laplacian4 = {{0,-1,0},{-1,4,-1},{0,-1,0}};
+                        biFiltered = Convolution(bi, laplacian4);
+                        if(bib != null){
+                            bibFiltered = Convolution(bib, laplacian4);
+                        }
                         break; 
                     case "8-n Laplacian":
-                            
+                        int[][] laplacian8 = {{-1,-1,-1},{-1,8,-1},{-1,-1,-1}};
+                        biFiltered = Convolution(bi, laplacian8);
+                        if(bib != null){
+                            bibFiltered = Convolution(bib, laplacian8);
+                        }
                         break;
                     case "4-n Laplacian Enhanced":
-                                
+                        int[][] laplacian4Enhanced = {{0,-1,0},{-1,5,-1},{0,-1,0}};
+                        biFiltered = Convolution(bi, laplacian4Enhanced);
+                        if(bib != null){
+                            bibFiltered = Convolution(bib, laplacian4Enhanced);
+                        }
                         break;
                     case "8-n Laplacian Enhanced":
-                                    
+                        int[][] laplacian8Enhanced = {{-1,-1,-1},{-1,9,-1},{-1,-1,-1}};
+                        biFiltered = Convolution(bi, laplacian8Enhanced);
+                        if(bib != null){
+                            bibFiltered = Convolution(bib, laplacian8Enhanced);
+                        }
                         break;
                     case "Roberts":
-                                        
+                        biFiltered = applyRobertsOperator(bi);
+                        if(bib != null){
+                            bibFiltered = applyRobertsOperator(bib);
+                        }
                         break;
                     case "Sobel X":
-                                            
+                        int[][] sobelX = {{-1,0,1},{-2,0,2},{-1,0,1}};
+                        biFiltered = Convolution(bi, sobelX);
+                        if(bib != null){
+                            bibFiltered = Convolution(bib, sobelX);
+                        }     
                         break;
                     case "Sobel Y":
-
+                        int[][] sobelY = {{-1,-2,-1},{0,0,0},{1,2,1}};
+                        biFiltered = Convolution(bi, sobelY);
+                        if(bib != null){
+                            bibFiltered = Convolution(bib, sobelY);
+                        }
                         break;
                     case "Gaussian":
 
@@ -782,6 +881,7 @@
                         break;
                 }
                 repaint();
+                convolutionDialog.setVisible(false);
             });
             convolutionDialog.add(operationList);
             convolutionDialog.add(applyConvolution);
