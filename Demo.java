@@ -5,7 +5,7 @@
     import java.awt.image.*;
     import javax.imageio.*;
     import javax.swing.*;
-    import javax.swing.event.*;
+    //import javax.swing.event.*;
     
     public class Demo extends Component implements ActionListener {
         
@@ -21,7 +21,9 @@
             "Random Shift",
             "AddSubMulDivide",
             "NOT",
-            "ANDORXORROI"
+            "ANDORXORROI",
+            "Logarithmic",
+            "Power-Low"
         };
 
         static JFrame f = new JFrame("Image Processing Demo");
@@ -459,6 +461,44 @@
             return thresholdedImage;
         }
         
+        public BufferedImage LogFunction(BufferedImage timg){
+            int width = timg.getWidth();
+            int height = timg.getHeight();
+
+            int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+
+            // Image Logarithmic Function
+            for(int y=0; y<height; y++){
+                for(int x =0; x<width; x++){
+                    ImageArray[x][y][1] = (int)(255 * Math.log(1 + ImageArray[x][y][1])/Math.log(256));  //r
+                    ImageArray[x][y][2] = (int)(255 * Math.log(1 + ImageArray[x][y][2])/Math.log(256));  //g
+                    ImageArray[x][y][3] = (int)(255 * Math.log(1 + ImageArray[x][y][3])/Math.log(256));  //b
+                }
+            }
+
+            return convertToBimage(ImageArray);  // Convert the array to BufferedImage
+        }
+
+        public BufferedImage PowerLow (BufferedImage timg, int scalingFactor){
+            int width = timg.getWidth();
+            int height = timg.getHeight();
+
+            float scalingFactorFloat = (float)scalingFactor/100;
+
+            int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+
+            // Image Power-Low Function
+            for(int y=0; y<height; y++){
+                for(int x =0; x<width; x++){
+                    ImageArray[x][y][1] = (int)(255 * Math.pow(ImageArray[x][y][1], scalingFactorFloat));  //r
+                    ImageArray[x][y][2] = (int)(255 * Math.pow(ImageArray[x][y][2], scalingFactorFloat));  //g
+                    ImageArray[x][y][3] = (int)(255 * Math.pow(ImageArray[x][y][3], scalingFactorFloat));  //b
+                }
+            }
+
+            return convertToBimage(ImageArray);  // Convert the array to BufferedImage
+        }
+
         
         
         //************************************
@@ -505,12 +545,24 @@
                         bibFiltered = BitwiseNOT(bib);
                     }
                     return;
+            case 8:
+                    biFiltered = LogFunction(bi);
+                    if(bib != null){
+                        bibFiltered = LogFunction(bib);
+                    }
+                    return;
+            case 9:
+                    biFiltered = PowerLow(bi, scalingFactor);
+                    if(bib != null){
+                        bibFiltered = PowerLow(bib, scalingFactor);
+                    }
+                    return;
             }
         }
 
         public void initSliderDialog(){
             // Initialize the dialog for the scaling factor with no owner frame, making it a top-level window
-            sliderDialog = new JDialog((Frame) null, "Adjust Scaling Factor", true); // Make it modal
+            sliderDialog = new JDialog((Frame) null, "Adjust Scaling Factor ", true); // Make it modal
             sliderDialog.setLayout(new FlowLayout());
             sliderDialog.setSize(300, 150); // Or adjust size as needed
         
@@ -551,7 +603,11 @@
                 scalingSlider.setMinimum(0);
                 scalingSlider.setMaximum(200);
                 scalingSlider.setValue(100); // Default scaling factor
-            }
+            } else if (Integer.valueOf(opIndex).equals(9)){
+                scalingSlider.setMinimum(1);
+                scalingSlider.setMaximum(2500);
+                scalingSlider.setValue(100); // Default scaling factor
+            } 
             sliderValueLabel.setText("Value: " + scalingSlider.getValue());
         }
 
@@ -818,7 +874,10 @@
                         operationDialog.setVisible(true);
                     } else if (opIndex == 7) {
                         BitwiseDialog.setVisible(true);
-                    }
+                    }  else if (opIndex == 9) {
+                        updateSliderForOperation();
+                        sliderDialog.setVisible(true);
+                    }  
                     else{
                         sliderDialog.setVisible(false);
                         operationDialog.setVisible(false);
@@ -855,10 +914,10 @@
             });
             Demo de = new Demo();
             f.add("Center", de);
-            JComboBox choices = new JComboBox(de.getDescriptions());
+            JComboBox<String> choices = new JComboBox<>(de.getDescriptions());
             choices.setActionCommand("SetFilter");
             choices.addActionListener(de);
-            JComboBox formats = new JComboBox(de.getFormats());
+            JComboBox<String> formats = new JComboBox<>(de.getFormats());
             formats.setActionCommand("Formats");
             formats.addActionListener(de);
             JButton button = new JButton("Undo");
