@@ -23,7 +23,8 @@
             "NOT",
             "ANDORXORROI",
             "Logarithmic",
-            "Power-Low"
+            "Power-Low",
+            "Random Look-Up Table"
         };
 
         static JFrame f = new JFrame("Image Processing Demo");
@@ -499,7 +500,28 @@
             return convertToBimage(ImageArray);  // Convert the array to BufferedImage
         }
 
-        
+        public BufferedImage RandomLookUpTable(BufferedImage timg){
+            int width = timg.getWidth();
+            int height = timg.getHeight();
+
+            int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+
+            int[] lut = new int[256];
+            for (int i = 0; i < 256; i++) {
+                lut[i] = (int)(Math.random() * 256);
+            }
+
+            // Image Negative Operation:
+            for(int y=0; y<height; y++){
+                for(int x =0; x<width; x++){
+                    ImageArray[x][y][1] = lut[ImageArray[x][y][1]];  //r
+                    ImageArray[x][y][2] = lut[ImageArray[x][y][2]];  //g
+                    ImageArray[x][y][3] = lut[ImageArray[x][y][3]];  //b
+                }
+            }
+            
+            return convertToBimage(ImageArray);  // Convert the array to BufferedImage
+        }
         
         //************************************
         //  You need to register your functioin here
@@ -555,6 +577,12 @@
                     biFiltered = PowerLow(bi, scalingFactor);
                     if(bib != null){
                         bibFiltered = PowerLow(bib, scalingFactor);
+                    }
+                    return;
+            case 10:
+                    biFiltered = RandomLookUpTable(bi);
+                    if(bib != null){
+                        bibFiltered = RandomLookUpTable(bib);
                     }
                     return;
             }
