@@ -24,7 +24,8 @@
             "ANDORXORROI",
             "Logarithmic",
             "Power-Low",
-            "Random Look-Up Table"
+            "Random Look-Up Table",
+            "Bit Plane Slice"
         };
 
         static JFrame f = new JFrame("Image Processing Demo");
@@ -523,6 +524,24 @@
             return convertToBimage(ImageArray);  // Convert the array to BufferedImage
         }
         
+        public BufferedImage BitPlaneSlice(BufferedImage timg, int scalingFactor){
+            int width = timg.getWidth();
+            int height = timg.getHeight();
+
+            int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+
+            // Image Negative Operation:
+            for(int y=0; y<height; y++){
+                for(int x =0; x<width; x++){
+                    ImageArray[x][y][1] = ((ImageArray[x][y][1] >> scalingFactor) & 1) * 255;  //r
+                    ImageArray[x][y][2] = ((ImageArray[x][y][2] >> scalingFactor) & 1) * 255;  //g
+                    ImageArray[x][y][3] = ((ImageArray[x][y][3] >> scalingFactor) & 1) * 255;  //b
+                }
+            }
+            
+            return convertToBimage(ImageArray);  // Convert the array to BufferedImage
+        }
+
         //************************************
         //  You need to register your functioin here
         //************************************
@@ -585,6 +604,12 @@
                         bibFiltered = RandomLookUpTable(bib);
                     }
                     return;
+            case 11:
+                    biFiltered = BitPlaneSlice(bi, scalingFactor);
+                    if(bib != null){
+                        bibFiltered = BitPlaneSlice(bib, scalingFactor);
+                    }
+                    return;
             }
         }
 
@@ -635,7 +660,11 @@
                 scalingSlider.setMinimum(1);
                 scalingSlider.setMaximum(2500);
                 scalingSlider.setValue(100); // Default scaling factor
-            } 
+            } else if (Integer.valueOf(opIndex).equals(11)){
+                scalingSlider.setMinimum(0);
+                scalingSlider.setMaximum(7);
+                scalingSlider.setValue(3); // Default scaling factor
+            }
             sliderValueLabel.setText("Value: " + scalingSlider.getValue());
         }
 
@@ -905,7 +934,13 @@
                     }  else if (opIndex == 9) {
                         updateSliderForOperation();
                         sliderDialog.setVisible(true);
-                    }  
+                    }  else if (opIndex == 10) {
+                        updateSliderForOperation();
+                        sliderDialog.setVisible(true);
+                    }   else if (opIndex == 11) {
+                        updateSliderForOperation();
+                        sliderDialog.setVisible(true);
+                    }
                     else{
                         sliderDialog.setVisible(false);
                         operationDialog.setVisible(false);
