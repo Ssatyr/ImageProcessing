@@ -27,7 +27,8 @@
             "Random Look-Up Table",
             "Bit Plane Slice",
             "Histogram & Normalization",
-            "Image Convolutions"
+            "Image Convolutions",
+            "Salt && Pepper Noise",
         };
 
         static JFrame f = new JFrame("Image Processing Demo");
@@ -203,7 +204,6 @@
 
             int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
 
-            // Image Negative Operation:
             for(int y=0; y<height; y++){
                 for(int x =0; x<width; x++){
                     ImageArray[x][y][1] = Math.max(Math.min(Math.round(ImageArray[x][y][1]  + scalingFactor), 255), 0);  //r
@@ -221,7 +221,6 @@
 
             int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
 
-            // Image Negative Operation:
             for(int y=0; y<height; y++){
                 for(int x =0; x<width; x++){
                     //int random = (int)(Math.random() * 255);
@@ -260,7 +259,6 @@
             int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
             int[][][] ImageArray2 = convertToArray(timg2);          //  Convert the image to array
 
-            // Image Negative Operation:
             for(int y=0; y<height; y++){
                 for(int x =0; x<width; x++){
                     ImageArray[x][y][1] = Math.max(Math.min(ImageArray[x][y][1]  - ImageArray2[x][y][1], 255), 0);  //r
@@ -279,7 +277,6 @@
             int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
             int[][][] ImageArray2 = convertToArray(timg2);          //  Convert the image to array
 
-            // Image Negative Operation:
             for(int y=0; y<height; y++){
                 for(int x =0; x<width; x++){
                     ImageArray[x][y][1] = Math.max(Math.min(Math.round(ImageArray[x][y][1]  * ImageArray2[x][y][1]/255), 255), 0);  //r
@@ -298,7 +295,6 @@
             int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
             int[][][] ImageArray2 = convertToArray(timg2);          //  Convert the image to array
 
-            // Image Negative Operation:
             for(int y=0; y<height; y++){
                 for(int x =0; x<width; x++){
                     ImageArray[x][y][1] = Math.max(Math.min(Math.round(ImageArray[x][y][1]  / ImageArray2[x][y][1]*255), 255), 0);  //r
@@ -773,6 +769,33 @@
 
         }
 
+        public BufferedImage SaltandPepper (BufferedImage timg){
+
+
+            int width = timg.getWidth();
+            int height = timg.getHeight();
+
+            int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+
+            // salt and perpper noise  
+            for(int y=0; y<height; y++){
+                for(int x =0; x<width; x++){
+                    int random = (int)(Math.random() * 100);
+                    if(random < 5){
+                        ImageArray[x][y][1] = 0;  //r
+                        ImageArray[x][y][2] = 0;  //g
+                        ImageArray[x][y][3] = 0;  //b
+                    } else if(random > 95){
+                        ImageArray[x][y][1] = 255;  //r
+                        ImageArray[x][y][2] = 255;  //g
+                        ImageArray[x][y][3] = 255;  //b
+                    }
+                }
+            }
+            
+            return convertToBimage(ImageArray);  // Convert the array to BufferedImage  
+        }
+
         //************************************
         //  You need to register your functioin here
         //************************************
@@ -845,6 +868,12 @@
                     biFiltered = FindingHistogram(bi);
                     if(bib != null){
                         bibFiltered = FindingHistogram(bib);
+                    }
+                    return;
+            case 14:
+                    biFiltered = SaltandPepper(bi);
+                    if(bib != null){
+                        bibFiltered = SaltandPepper(bib);
                     }
                     return;
             }
