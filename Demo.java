@@ -723,6 +723,56 @@
             return convertToBimage(resultArray); 
         }        
 
+        public BufferedImage Convolutions5by5(BufferedImage timg, int[][] kernel){
+            int width = timg.getWidth();
+            int height = timg.getHeight();
+
+            int[][][] ImageArray = convertToArray(timg);          
+
+            int kernelSize = 5;
+            int kernelSum = 0;
+
+            for (int y = 0; y < kernelSize; y++) {
+                for (int x = 0; x < kernelSize; x++) {
+                    kernelSum += kernel[y][x];
+                }
+            }
+
+            int[][][] resultArray = new int[width][height][4];
+
+            for (int y = 2; y < height - 2; y++) {
+                for (int x = 2; x < width - 2; x++) {
+                    int sumR = 0;
+                    int sumG = 0;
+                    int sumB = 0;
+            
+                    for (int ky = 0; ky < kernelSize; ky++) {
+                        for (int kx = 0; kx < kernelSize; kx++) {
+                            int pixelR = ImageArray[x + kx - 2][y + ky - 2][1];
+                            int pixelG = ImageArray[x + kx - 2][y + ky - 2][2];
+                            int pixelB = ImageArray[x + kx - 2][y + ky - 2][3];
+                            sumR += kernel[ky][kx] * pixelR;
+                            sumG += kernel[ky][kx] * pixelG;
+                            sumB += kernel[ky][kx] * pixelB;
+                        }
+                    }
+            
+                    if (kernelSum != 0) { // Avoid division by zero
+                        resultArray[x][y][1] = Math.abs(sumR) / kernelSum;
+                        resultArray[x][y][2] = Math.abs(sumG) / kernelSum;
+                        resultArray[x][y][3] = Math.abs(sumB) / kernelSum;
+                    } else { // In case kernelSum is 0, assign the absolute values directly
+                        resultArray[x][y][1] = Math.abs(sumR);
+                        resultArray[x][y][2] = Math.abs(sumG);
+                        resultArray[x][y][3] = Math.abs(sumB);
+                    }
+                }
+            }
+
+            return convertToBimage(resultArray);
+
+        }
+
         //************************************
         //  You need to register your functioin here
         //************************************
@@ -874,10 +924,18 @@
                         }
                         break;
                     case "Gaussian":
-
+                        int [][] gaussian = {{1, 4, 7, 4, 1}, {4, 16, 26, 16, 4}, {7, 26, 41, 26, 7}, {4, 16, 26, 16, 4}, {1, 4, 7, 4, 1}};
+                        biFiltered = Convolutions5by5(bi, gaussian);
+                        if(bib != null){
+                            bibFiltered = Convolutions5by5(bib, gaussian);
+                        }
                         break;
                     case "LaPlacian of Gaussian":
-
+                        int [][] laplacianOfGaussian = {{0, 0, -1, 0, 0}, {0, -1, -2, -1, 0}, {-1, -2, 16, -2, -1}, {0, -1, -2, -1, 0}, {0, 0, -1, 0, 0}};
+                        biFiltered = Convolutions5by5(bi, laplacianOfGaussian);
+                        if(bib != null){
+                            bibFiltered = Convolutions5by5(bib, laplacianOfGaussian);
+                        }
                         break;
                 }
                 repaint();
