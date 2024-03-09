@@ -1,5 +1,6 @@
     import java.io.*;
     import java.util.TreeSet;
+    import java.util.Arrays;
     import java.awt.*;
     import java.awt.event.*;
     import java.awt.image.*;
@@ -29,6 +30,7 @@
             "Histogram & Normalization",
             "Image Convolutions",
             "Salt && Pepper Noise",
+            "Filtering",
         };
 
         static JFrame f = new JFrame("Image Processing Demo");
@@ -45,6 +47,7 @@
         private JDialog BitwiseDialog; // Dialog for the bitwise operation
         private JDialog operationDialog; // Dialog for the arithmetic operation
         private JDialog convolutionDialog; // Dialog for the convolution matrix
+        private JDialog FilterDialog; // Dialog for the filter
         private JLabel sliderValueLabel; // Label to display slider value
         private int scalingFactor = 100; // Default scaling factor
         
@@ -66,6 +69,7 @@
                 initArithmeticOperationDialog();
                 initBitwiseOperationDialog();
                 initConvolutionDialog();
+                initFilterDialog();
             } catch (IOException e) {      // deal with the situation that th image has problem;/
                 System.out.println("Image could not be read");
                 System.exit(1);
@@ -796,6 +800,150 @@
             return convertToBimage(ImageArray);  // Convert the array to BufferedImage  
         }
 
+        public BufferedImage MinFilter (BufferedImage timg){
+            int width = timg.getWidth();
+            int height = timg.getHeight();
+
+            int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+
+            int[][][] resultArray = new int[width][height][4];
+
+            for (int y = 1; y < height - 1; y++) {
+                for (int x = 1; x < width - 1; x++) {
+                    int minR = 255;
+                    int minG = 255;
+                    int minB = 255;
+            
+                    for (int ky = 0; ky < 3; ky++) {
+                        for (int kx = 0; kx < 3; kx++) {
+                            int pixelR = ImageArray[x + kx - 1][y + ky - 1][1];
+                            int pixelG = ImageArray[x + kx - 1][y + ky - 1][2];
+                            int pixelB = ImageArray[x + kx - 1][y + ky - 1][3];
+                            if (pixelR < minR) minR = pixelR;
+                            if (pixelG < minG) minG = pixelG;
+                            if (pixelB < minB) minB = pixelB;
+                        }
+                    }
+            
+                    resultArray[x][y][1] = minR;
+                    resultArray[x][y][2] = minG;
+                    resultArray[x][y][3] = minB;
+                }
+            }
+        
+            return convertToBimage(resultArray);
+        }
+
+        public BufferedImage MaxFilter (BufferedImage timg){
+            int width = timg.getWidth();
+            int height = timg.getHeight();
+
+            int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+
+            int[][][] resultArray = new int[width][height][4];
+
+            for (int y = 1; y < height - 1; y++) {
+                for (int x = 1; x < width - 1; x++) {
+                    int maxR = 0;
+                    int maxG = 0;
+                    int maxB = 0;
+            
+                    for (int ky = 0; ky < 3; ky++) {
+                        for (int kx = 0; kx < 3; kx++) {
+                            int pixelR = ImageArray[x + kx - 1][y + ky - 1][1];
+                            int pixelG = ImageArray[x + kx - 1][y + ky - 1][2];
+                            int pixelB = ImageArray[x + kx - 1][y + ky - 1][3];
+                            if (pixelR > maxR) maxR = pixelR;
+                            if (pixelG > maxG) maxG = pixelG;
+                            if (pixelB > maxB) maxB = pixelB;
+                        }
+                    }
+            
+                    resultArray[x][y][1] = maxR;
+                    resultArray[x][y][2] = maxG;
+                    resultArray[x][y][3] = maxB;
+                }
+            }
+        
+            return convertToBimage(resultArray);
+        }
+
+        public BufferedImage MedianFilter (BufferedImage timg){
+            int width = timg.getWidth();
+            int height = timg.getHeight();
+
+            int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+
+            int[][][] resultArray = new int[width][height][4];
+
+            for (int y = 1; y < height - 1; y++) {
+                for (int x = 1; x < width - 1; x++) {
+                    int[] red = new int[9];
+                    int[] green = new int[9];
+                    int[] blue = new int[9];
+            
+                    for (int ky = 0; ky < 3; ky++) {
+                        for (int kx = 0; kx < 3; kx++) {
+                            int pixelR = ImageArray[x + kx - 1][y + ky - 1][1];
+                            int pixelG = ImageArray[x + kx - 1][y + ky - 1][2];
+                            int pixelB = ImageArray[x + kx - 1][y + ky - 1][3];
+                            red[ky * 3 + kx] = pixelR;
+                            green[ky * 3 + kx] = pixelG;
+                            blue[ky * 3 + kx] = pixelB;
+                        }
+                    }
+
+                    Arrays.sort(red);
+                    Arrays.sort(green);
+                    Arrays.sort(blue);
+            
+                    resultArray[x][y][1] = red[4];
+                    resultArray[x][y][2] = green[4];
+                    resultArray[x][y][3] = blue[4];
+                }
+            }
+        
+            return convertToBimage(resultArray);
+        }
+
+        public BufferedImage MidpointFilter (BufferedImage timg){
+            int width = timg.getWidth();
+            int height = timg.getHeight();
+
+            int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+
+            int[][][] resultArray = new int[width][height][4];
+
+            for (int y = 1; y < height - 1; y++) {
+                for (int x = 1; x < width - 1; x++) {
+                    int[] red = new int[9];
+                    int[] green = new int[9];
+                    int[] blue = new int[9];
+            
+                    for (int ky = 0; ky < 3; ky++) {
+                        for (int kx = 0; kx < 3; kx++) {
+                            int pixelR = ImageArray[x + kx - 1][y + ky - 1][1];
+                            int pixelG = ImageArray[x + kx - 1][y + ky - 1][2];
+                            int pixelB = ImageArray[x + kx - 1][y + ky - 1][3];
+                            red[ky * 3 + kx] = pixelR;
+                            green[ky * 3 + kx] = pixelG;
+                            blue[ky * 3 + kx] = pixelB;
+                        }
+                    }
+            
+                    Arrays.sort(red);
+                    Arrays.sort(green);
+                    Arrays.sort(blue);
+            
+                    resultArray[x][y][1] = (red[0] + red[8]) / 2;
+                    resultArray[x][y][2] = (green[0] + green[8]) / 2;
+                    resultArray[x][y][3] = (blue[0] + blue[8]) / 2;
+                }
+            }
+        
+            return convertToBimage(resultArray);
+        }
+
         //************************************
         //  You need to register your functioin here
         //************************************
@@ -973,6 +1121,51 @@
             convolutionDialog.add(operationList);
             convolutionDialog.add(applyConvolution);
             convolutionDialog.setLocationRelativeTo(f); // Center dialog relative to the frame
+        }
+
+        public void initFilterDialog(){
+            FilterDialog = new JDialog((Frame) null, "Choose filter to apply", true); // Make it modal
+            FilterDialog.setLayout(new FlowLayout());
+            FilterDialog.setSize(300, 150); // Or adjust size as needed
+
+            String[] operations = {"Min Filter", "Max Filter", "Median Filter","Midpoint Filter"};
+            JComboBox<String> operationList = new JComboBox<>(operations);
+
+            JButton applyConvolution = new JButton("Apply Filter");
+            applyConvolution.addActionListener(e -> {
+                String operation = (String) operationList.getSelectedItem();
+                switch (operation) {
+                    case "Min Filter":
+                        biFiltered = MinFilter(bi);
+                        if(bib != null){
+                            bibFiltered = MinFilter(bib);
+                        }
+                        break;
+                    case "Max Filter":
+                        biFiltered = MaxFilter(bi);
+                        if(bib != null){
+                            bibFiltered = MaxFilter(bib);
+                        }
+                        break;
+                    case "Median Filter":
+                        biFiltered = MedianFilter(bi);
+                        if(bib != null){
+                            bibFiltered = MedianFilter(bib);
+                        }
+                        break;
+                    case "Midpoint Filter":
+                        biFiltered = MidpointFilter(bi);
+                        if(bib != null){
+                            bibFiltered = MidpointFilter(bib);
+                        }
+                        break;
+                }
+                repaint();
+                FilterDialog.setVisible(false);
+            });
+            FilterDialog.add(operationList);
+            FilterDialog.add(applyConvolution);
+            FilterDialog.setLocationRelativeTo(f); // Center dialog relative to the frame
         }
 
         public void initSliderDialog(){
@@ -1304,6 +1497,8 @@
                         sliderDialog.setVisible(true);
                     }   else if(opIndex == 13){
                         convolutionDialog.setVisible(true);
+                    }   else if(opIndex == 15){
+                        FilterDialog.setVisible(true);
                     }
                     else{
                         sliderDialog.setVisible(false);
