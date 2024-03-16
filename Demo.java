@@ -31,6 +31,8 @@
             "Image Convolutions",
             "Salt && Pepper Noise",
             "Filtering",
+            "Mean & Standard Deviation",
+            "Simple Thresholding",
         };
 
         static JFrame f = new JFrame("Image Processing Demo");
@@ -534,7 +536,6 @@
 
             int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
 
-            // Image Negative Operation:
             for(int y=0; y<height; y++){
                 for(int x =0; x<width; x++){
                     ImageArray[x][y][1] = ((ImageArray[x][y][1] >> scalingFactor) & 1) * 255;  //r
@@ -612,7 +613,7 @@
             return cdf;
         }
 
-        public BufferedImage Convolution(BufferedImage timg, int[][] kernel){
+        public BufferedImage Convolution(BufferedImage timg, int[][] kernel, int avg){
             int width = timg.getWidth();
             int height = timg.getHeight();
 
@@ -645,12 +646,21 @@
                             sumB += kernel[ky][kx] * pixelB;
                         }
                     }
-            
-                    if (kernelSum != 0) { // Avoid division by zero
-                        resultArray[x][y][1] = Math.abs(sumR) / kernelSum;
-                        resultArray[x][y][2] = Math.abs(sumG) / kernelSum;
-                        resultArray[x][y][3] = Math.abs(sumB) / kernelSum;
-                    } else { // In case kernelSum is 0, assign the absolute values directly
+                    
+                    if(avg ==1)
+                    {
+                        if (kernelSum != 0) { // Avoid division by zero
+                            resultArray[x][y][1] = Math.abs(sumR) / kernelSum;
+                            resultArray[x][y][2] = Math.abs(sumG) / kernelSum;
+                            resultArray[x][y][3] = Math.abs(sumB) / kernelSum;
+                        } else { // In case kernelSum is 0, assign the absolute values directly
+                            resultArray[x][y][1] = Math.abs(sumR);
+                            resultArray[x][y][2] = Math.abs(sumG);
+                            resultArray[x][y][3] = Math.abs(sumB);
+                        }
+                    }
+                    else
+                    {
                         resultArray[x][y][1] = Math.abs(sumR);
                         resultArray[x][y][2] = Math.abs(sumG);
                         resultArray[x][y][3] = Math.abs(sumB);
@@ -944,6 +954,89 @@
             return convertToBimage(resultArray);
         }
 
+        public void MeanandStd(BufferedImage timg){
+            int width = timg.getWidth();
+            int height = timg.getHeight();
+
+            int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+
+            int[] red = new int[width * height];
+            int[] green = new int[width * height];
+            int[] blue = new int[width * height];
+
+            int count = 0;
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    red[count] = ImageArray[x][y][1];
+                    green[count] = ImageArray[x][y][2];
+                    blue[count] = ImageArray[x][y][3];
+                    count++;
+                }
+            }
+
+            double meanR = mean(red);
+            double meanG = mean(green);
+            double meanB = mean(blue);
+
+            double stdR = std(red, meanR);
+            double stdG = std(green, meanG);
+            double stdB = std(blue, meanB);
+
+            System.out.println("Mean of Red: " + meanR);
+            System.out.println("Mean of Green: " + meanG);
+            System.out.println("Mean of Blue: " + meanB);
+            System.out.println("Standard Deviation of Red: " + stdR);
+            System.out.println("Standard Deviation of Green: " + stdG);
+            System.out.println("Standard Deviation of Blue: " + stdB);
+        }
+
+        // Calculate the mean of an array
+        public double mean(int[] array) {
+            int sum = 0;
+            for (int i = 0; i < array.length; i++) {
+                sum += array[i];
+            }
+            return (double) sum / array.length;
+        }
+        public double std(int[] array, double mean) {
+            double sum = 0;
+            for (int i = 0; i < array.length; i++) {
+                sum += Math.pow(array[i] - mean, 2);
+            }
+            double variance = sum / array.length;
+            return Math.sqrt(variance);
+        }
+
+        public BufferedImage SimpleThresholding(BufferedImage timg, int threshold){
+            int width = timg.getWidth();
+            int height = timg.getHeight();
+
+            int[][][] ImageArray = convertToArray(timg);          
+
+            // Simple Thresholding
+            for(int y=0; y<height; y++){
+                for(int x =0; x<width; x++){
+                    if(ImageArray[x][y][1] > threshold){
+                        ImageArray[x][y][1] = 255;  //r
+                    } else {
+                        ImageArray[x][y][1] = 0;  //r
+                    }
+                    if(ImageArray[x][y][2] > threshold){
+                        ImageArray[x][y][2] = 255;  //g
+                    } else {
+                        ImageArray[x][y][2] = 0;  //g
+                    }
+                    if(ImageArray[x][y][3] > threshold){
+                        ImageArray[x][y][3] = 255;  //b
+                    } else {
+                        ImageArray[x][y][3] = 0;  //b
+                    }
+                }
+            }
+            
+            return convertToBimage(ImageArray);  
+        }
+
         //************************************
         //  You need to register your functioin here
         //************************************
@@ -972,6 +1065,7 @@
                     }
                     return;
             case 3: 
+                    biFiltered = Shift(bi, scalingFactor);
                     if(bib != null){
                         bibFiltered = Shift(bib, scalingFactor);
                     }
@@ -1024,6 +1118,17 @@
                         bibFiltered = SaltandPepper(bib);
                     }
                     return;
+            case 16:
+                    MeanandStd(bi);
+                    if(bib != null){
+                        MeanandStd(bib);
+                    }
+            case 17:
+                    biFiltered = SimpleThresholding(bi, scalingFactor);
+                    if(bib != null){
+                        bibFiltered = SimpleThresholding(bib, scalingFactor);
+                    }
+                    return;
             }
         }
 
@@ -1041,43 +1146,43 @@
                 switch (operation) {
                     case "Averaging":
                         int[][] kernel = {{1,1,1},{1,1,1},{1,1,1}};
-                        biFiltered = Convolution(bi, kernel);
+                        biFiltered = Convolution(bi, kernel, 1);
                         if(bib != null){
-                            bibFiltered = Convolution(bib, kernel);
+                            bibFiltered = Convolution(bib, kernel, 1);
                         }
                         break;
                     case "Weighted Averaging":
                         int[][] weightedKernel = {{1,2,1},{2,4,2},{1,2,1}};
-                        biFiltered = Convolution(bi, weightedKernel);
+                        biFiltered = Convolution(bi, weightedKernel, 1);
                         if(bib != null){
-                            bibFiltered = Convolution(bib, weightedKernel);
+                            bibFiltered = Convolution(bib, weightedKernel, 1);
                         }
                     case "4-n Laplacian":
                         int[][] laplacian4 = {{0,-1,0},{-1,4,-1},{0,-1,0}};
-                        biFiltered = Convolution(bi, laplacian4);
+                        biFiltered = Convolution(bi, laplacian4, 0);
                         if(bib != null){
-                            bibFiltered = Convolution(bib, laplacian4);
+                            bibFiltered = Convolution(bib, laplacian4, 0);
                         }
                         break; 
                     case "8-n Laplacian":
                         int[][] laplacian8 = {{-1,-1,-1},{-1,8,-1},{-1,-1,-1}};
-                        biFiltered = Convolution(bi, laplacian8);
+                        biFiltered = Convolution(bi, laplacian8, 0);
                         if(bib != null){
-                            bibFiltered = Convolution(bib, laplacian8);
+                            bibFiltered = Convolution(bib, laplacian8, 0);
                         }
                         break;
                     case "4-n Laplacian Enhanced":
                         int[][] laplacian4Enhanced = {{0,-1,0},{-1,5,-1},{0,-1,0}};
-                        biFiltered = Convolution(bi, laplacian4Enhanced);
+                        biFiltered = Convolution(bi, laplacian4Enhanced, 0);
                         if(bib != null){
-                            bibFiltered = Convolution(bib, laplacian4Enhanced);
+                            bibFiltered = Convolution(bib, laplacian4Enhanced, 0);
                         }
                         break;
                     case "8-n Laplacian Enhanced":
                         int[][] laplacian8Enhanced = {{-1,-1,-1},{-1,9,-1},{-1,-1,-1}};
-                        biFiltered = Convolution(bi, laplacian8Enhanced);
+                        biFiltered = Convolution(bi, laplacian8Enhanced, 0);
                         if(bib != null){
-                            bibFiltered = Convolution(bib, laplacian8Enhanced);
+                            bibFiltered = Convolution(bib, laplacian8Enhanced, 0);
                         }
                         break;
                     case "Roberts":
@@ -1088,16 +1193,16 @@
                         break;
                     case "Sobel X":
                         int[][] sobelX = {{-1,0,1},{-2,0,2},{-1,0,1}};
-                        biFiltered = Convolution(bi, sobelX);
+                        biFiltered = Convolution(bi, sobelX, 0);
                         if(bib != null){
-                            bibFiltered = Convolution(bib, sobelX);
+                            bibFiltered = Convolution(bib, sobelX, 0);
                         }     
                         break;
                     case "Sobel Y":
                         int[][] sobelY = {{-1,-2,-1},{0,0,0},{1,2,1}};
-                        biFiltered = Convolution(bi, sobelY);
+                        biFiltered = Convolution(bi, sobelY, 0);
                         if(bib != null){
-                            bibFiltered = Convolution(bib, sobelY);
+                            bibFiltered = Convolution(bib, sobelY, 0);
                         }
                         break;
                     case "Gaussian":
@@ -1219,7 +1324,11 @@
                 scalingSlider.setMinimum(0);
                 scalingSlider.setMaximum(7);
                 scalingSlider.setValue(3); // Default scaling factor
-            }
+            } else if(Integer.valueOf(opIndex).equals(17)){
+                scalingSlider.setMinimum(0);
+                scalingSlider.setMaximum(255);
+                scalingSlider.setValue(0); // Default scaling factor
+            } 
             sliderValueLabel.setText("Value: " + scalingSlider.getValue());
         }
 
@@ -1499,6 +1608,9 @@
                         convolutionDialog.setVisible(true);
                     }   else if(opIndex == 15){
                         FilterDialog.setVisible(true);
+                    } else if(opIndex == 17){
+                        updateSliderForOperation();
+                        sliderDialog.setVisible(true);
                     }
                     else{
                         sliderDialog.setVisible(false);
