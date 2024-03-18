@@ -229,10 +229,10 @@
 
             for(int y=0; y<height; y++){
                 for(int x =0; x<width; x++){
-                    //int random = (int)(Math.random() * 255);
-                    ImageArray[x][y][1] = Math.max(Math.min(Math.round(ImageArray[x][y][1]  + (int)(Math.random() * 511 - 255)), 255), 0);  //r
-                    ImageArray[x][y][2] = Math.max(Math.min(Math.round(ImageArray[x][y][2]  + (int)(Math.random() * 511 - 255)), 255), 0);  //g
-                    ImageArray[x][y][3] = Math.max(Math.min(Math.round(ImageArray[x][y][3]  + (int)(Math.random() * 511 - 255)), 255), 0);  //b
+                    int random = (int)(Math.random() * 511 - 256);
+                    ImageArray[x][y][1] = Math.max(Math.min(Math.round(ImageArray[x][y][1]  + random), 255), 0);  //r
+                    ImageArray[x][y][2] = Math.max(Math.min(Math.round(ImageArray[x][y][2]  + random), 255), 0);  //g
+                    ImageArray[x][y][3] = Math.max(Math.min(Math.round(ImageArray[x][y][3]  + random), 255), 0);  //b
                 }
             }
             
@@ -285,9 +285,10 @@
 
             for(int y=0; y<height; y++){
                 for(int x =0; x<width; x++){
-                    ImageArray[x][y][1] = Math.max(Math.min(Math.round(ImageArray[x][y][1]  * ImageArray2[x][y][1]/255), 255), 0);  //r
-                    ImageArray[x][y][2] = Math.max(Math.min(Math.round(ImageArray[x][y][2]  * ImageArray2[x][y][2]/255), 255), 0);  //g
-                    ImageArray[x][y][3] = Math.max(Math.min(Math.round(ImageArray[x][y][3]  * ImageArray2[x][y][3]/255), 255), 0);  //b
+                    ImageArray[x][y][1] = Math.max(Math.min(Math.round(ImageArray[x][y][1]  * ImageArray2[x][y][1]), 255), 0);  //r
+                    ImageArray[x][y][2] = Math.max(Math.min(Math.round(ImageArray[x][y][2]  * ImageArray2[x][y][2]), 255), 0);  //g
+                    ImageArray[x][y][3] = Math.max(Math.min(Math.round(ImageArray[x][y][3]  * ImageArray2[x][y][3]), 255), 0);  //b
+                    // czy ma byc skalowane /255 czy po prostu mnożone?
                 }
             }
             
@@ -303,9 +304,12 @@
 
             for(int y=0; y<height; y++){
                 for(int x =0; x<width; x++){
-                    ImageArray[x][y][1] = Math.max(Math.min(Math.round(ImageArray[x][y][1]  / ImageArray2[x][y][1]*255), 255), 0);  //r
-                    ImageArray[x][y][2] = Math.max(Math.min(Math.round(ImageArray[x][y][2]  / ImageArray2[x][y][2]*255), 255), 0);  //g
-                    ImageArray[x][y][3] = Math.max(Math.min(Math.round(ImageArray[x][y][3]  / ImageArray2[x][y][3]*255), 255), 0);  //b
+                    if (ImageArray2[x][y][1] == 0) ImageArray2[x][y][1] = 1;
+                    if (ImageArray2[x][y][2] == 0) ImageArray2[x][y][2] = 1;
+                    if (ImageArray2[x][y][3] == 0) ImageArray2[x][y][3] = 1;
+                    ImageArray[x][y][1] = Math.max(Math.min(Math.round(ImageArray[x][y][1]  / ImageArray2[x][y][1]), 255), 0);  //r
+                    ImageArray[x][y][2] = Math.max(Math.min(Math.round(ImageArray[x][y][2]  / ImageArray2[x][y][2]), 255), 0);  //g
+                    ImageArray[x][y][3] = Math.max(Math.min(Math.round(ImageArray[x][y][3]  / ImageArray2[x][y][3]), 255), 0);  //b
                 }
             }
             
@@ -367,9 +371,9 @@
             //Image Bitwise OR Operation:
             for(int y=0; y<height; y++){
                 for(int x =0; x<width; x++){
-                    ImageArray[x][y][1] = ImageArray[x][y][1] | ImageArray2[x][y][1];  //r
-                    ImageArray[x][y][2] = ImageArray[x][y][2] | ImageArray2[x][y][2];  //g
-                    ImageArray[x][y][3] = ImageArray[x][y][3] | ImageArray2[x][y][3];  //b
+                    ImageArray[x][y][1] = ImageArray[x][y][1] &0xFF | ImageArray2[x][y][1] &0xFF;  //r
+                    ImageArray[x][y][2] = ImageArray[x][y][2] &0xFF | ImageArray2[x][y][2] &0xFF;  //g
+                    ImageArray[x][y][3] = ImageArray[x][y][3] &0xFF | ImageArray2[x][y][3] &0xFF;  //b
                 }
             }
             
@@ -494,13 +498,13 @@
             float scalingFactorFloat = (float)scalingFactor/100;
 
             int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
-
-            // Image Power-Low Function
+            double c  = (Math.pow(255, 1 - scalingFactorFloat));
+            // Image Power-Law Function
             for(int y=0; y<height; y++){
                 for(int x =0; x<width; x++){
-                    ImageArray[x][y][1] = (int)(255 * Math.pow(ImageArray[x][y][1], scalingFactorFloat));  //r
-                    ImageArray[x][y][2] = (int)(255 * Math.pow(ImageArray[x][y][2], scalingFactorFloat));  //g
-                    ImageArray[x][y][3] = (int)(255 * Math.pow(ImageArray[x][y][3], scalingFactorFloat));  //b
+                    ImageArray[x][y][1] = (int)(c * Math.pow(ImageArray[x][y][1], scalingFactorFloat));  //r
+                    ImageArray[x][y][2] = (int)(c * Math.pow(ImageArray[x][y][2], scalingFactorFloat));  //g
+                    ImageArray[x][y][3] = (int)(c * Math.pow(ImageArray[x][y][3], scalingFactorFloat));  //b
                 }
             }
 
@@ -649,11 +653,11 @@
                     
                     if(avg ==1)
                     {
-                        if (kernelSum != 0) { // Avoid division by zero
+                        if (kernelSum != 0) {
                             resultArray[x][y][1] = Math.abs(sumR) / kernelSum;
                             resultArray[x][y][2] = Math.abs(sumG) / kernelSum;
                             resultArray[x][y][3] = Math.abs(sumB) / kernelSum;
-                        } else { // In case kernelSum is 0, assign the absolute values directly
+                        } else { 
                             resultArray[x][y][1] = Math.abs(sumR);
                             resultArray[x][y][2] = Math.abs(sumG);
                             resultArray[x][y][3] = Math.abs(sumB);
@@ -661,8 +665,8 @@
                     }
                     else
                     {
-                        resultArray[x][y][1] = Math.abs(sumR);
-                        resultArray[x][y][2] = Math.abs(sumG);
+                        resultArray[x][y][1] = Math.abs(sumR); 
+                        resultArray[x][y][2] = Math.abs(sumG); 
                         resultArray[x][y][3] = Math.abs(sumB);
                     }
                 }
@@ -1037,6 +1041,8 @@
             return convertToBimage(ImageArray);  
         }
 
+        
+
         //************************************
         //  You need to register your functioin here
         //************************************
@@ -1366,7 +1372,7 @@
                     File file = chooser.getSelectedFile();
                     try {
                         biba2 = ImageIO.read(file);
-                        chooseFirst.setText(file.getName());
+                        chooseSecond.setText(file.getName());
                         if (biba2.getType() != BufferedImage.TYPE_INT_RGB) {
                             BufferedImage biba2 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
                         }
