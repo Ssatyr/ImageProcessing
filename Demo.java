@@ -1604,9 +1604,6 @@
                     }  else if (opIndex == 9) {
                         updateSliderForOperation();
                         sliderDialog.setVisible(true);
-                    }  else if (opIndex == 10) {
-                        updateSliderForOperation();
-                        sliderDialog.setVisible(true);
                     }   else if (opIndex == 11) {
                         updateSliderForOperation();
                         sliderDialog.setVisible(true);
