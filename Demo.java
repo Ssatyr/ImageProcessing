@@ -287,9 +287,9 @@
 
             for(int y=0; y<height; y++){
                 for(int x =0; x<width; x++){
-                    ImageArray[x][y][1] = Math.max(Math.min(Math.round(ImageArray[x][y][1]  * (ImageArray2[x][y][1] / 255)), 255), 0);  //r
-                    ImageArray[x][y][2] = Math.max(Math.min(Math.round(ImageArray[x][y][2]  * (ImageArray2[x][y][2] / 255)), 255), 0);  //g
-                    ImageArray[x][y][3] = Math.max(Math.min(Math.round(ImageArray[x][y][3]  * (ImageArray2[x][y][3] / 255)), 255), 0);  //b
+                    ImageArray[x][y][1] = Math.max(Math.min(Math.round(ImageArray[x][y][1]  * ImageArray2[x][y][1] / 255), 255), 0);  //r
+                    ImageArray[x][y][2] = Math.max(Math.min(Math.round(ImageArray[x][y][2]  * ImageArray2[x][y][2] / 255), 255), 0);  //g
+                    ImageArray[x][y][3] = Math.max(Math.min(Math.round(ImageArray[x][y][3]  * ImageArray2[x][y][3] / 255), 255), 0);  //b
                     // czy ma byc skalowane /255 czy po prostu mnożone?
                 }
             }
@@ -309,9 +309,9 @@
                     if (ImageArray2[x][y][1] == 0) ImageArray2[x][y][1] = 1;
                     if (ImageArray2[x][y][2] == 0) ImageArray2[x][y][2] = 1;
                     if (ImageArray2[x][y][3] == 0) ImageArray2[x][y][3] = 1;
-                    ImageArray[x][y][1] = Math.max(Math.min(Math.round(ImageArray[x][y][1]  / (ImageArray2[x][y][1] / 255)), 255), 0);  //r
-                    ImageArray[x][y][2] = Math.max(Math.min(Math.round(ImageArray[x][y][2]  / (ImageArray2[x][y][2] / 255)), 255), 0);  //g
-                    ImageArray[x][y][3] = Math.max(Math.min(Math.round(ImageArray[x][y][3]  / (ImageArray2[x][y][3] / 255)), 255), 0);  //b
+                    ImageArray[x][y][1] = Math.min(Math.round((ImageArray[x][y][1]  / ImageArray2[x][y][1]) * 255), 255);  //r
+                    ImageArray[x][y][2] = Math.min(Math.round((ImageArray[x][y][2]  / ImageArray2[x][y][2]) * 255), 255);  //g
+                    ImageArray[x][y][3] = Math.min(Math.round((ImageArray[x][y][3]  / ImageArray2[x][y][3]) * 255), 255);  //b
                 }
             }
             
