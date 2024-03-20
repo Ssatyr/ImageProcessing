@@ -52,6 +52,7 @@
         private JDialog FilterDialog; // Dialog for the filter
         private JLabel sliderValueLabel; // Label to display slider value
         private int scalingFactor = 100; // Default scaling factor
+        private static boolean toggle = false;
         
         public Demo() {
             try {
@@ -1052,6 +1053,8 @@
                 return;
             }
 
+            BufferedImage inputImage = toggle ? biFiltered : bi;
+
             uno_reverse_card = lastOp;
             lastOp = opIndex;
 
@@ -1059,7 +1062,7 @@
             case 0: biFiltered = bi; /* original */
                     bibFiltered = bib;
                     return; 
-            case 1: biFiltered = ImageNegative(bi); /* Image Negative */
+            case 1: biFiltered = ImageNegative(inputImage); /* Image Negative */
                     if(bib != null){
                         bibFiltered = ImageNegative(bib);
                     }
@@ -1071,66 +1074,66 @@
                     }
                     return;
             case 3: 
-                    biFiltered = Shift(bi, scalingFactor);
+                    biFiltered = Shift(inputImage, scalingFactor);
                     if(bib != null){
                         bibFiltered = Shift(bib, scalingFactor);
                     }
                     return;
             case 4:
-                    biFiltered = RandomShift(bi);
+                    biFiltered = RandomShift(inputImage);
                     if(bib != null){
                         bibFiltered = RandomShift(bib);
                     }
                     return;
             case 6:
-                    biFiltered = BitwiseNOT(bi);
+                    biFiltered = BitwiseNOT(inputImage);
                     if(bib != null){
                         bibFiltered = BitwiseNOT(bib);
                     }
                     return;
             case 8:
-                    biFiltered = LogFunction(bi);
+                    biFiltered = LogFunction(inputImage);
                     if(bib != null){
                         bibFiltered = LogFunction(bib);
                     }
                     return;
             case 9:
-                    biFiltered = PowerLow(bi, scalingFactor);
+                    biFiltered = PowerLow(inputImage, scalingFactor);
                     if(bib != null){
-                        bibFiltered = PowerLow(bib, scalingFactor);
+                        bibFiltered = PowerLow(inputImage, scalingFactor);
                     }
                     return;
             case 10:
-                    biFiltered = RandomLookUpTable(bi);
+                    biFiltered = RandomLookUpTable(inputImage);
                     if(bib != null){
                         bibFiltered = RandomLookUpTable(bib);
                     }
                     return;
             case 11:
-                    biFiltered = BitPlaneSlice(bi, scalingFactor);
+                    biFiltered = BitPlaneSlice(inputImage, scalingFactor);
                     if(bib != null){
                         bibFiltered = BitPlaneSlice(bib, scalingFactor);
                     }
                     return;
             case 12:
-                    biFiltered = FindingHistogram(bi);
+                    biFiltered = FindingHistogram(inputImage);
                     if(bib != null){
                         bibFiltered = FindingHistogram(bib);
                     }
                     return;
             case 14:
-                    biFiltered = SaltandPepper(bi);
+                    biFiltered = SaltandPepper(inputImage);
                     if(bib != null){
                         bibFiltered = SaltandPepper(bib);
                     }
                     return;
             case 16:
-                    MeanandStd(bi);
+                    MeanandStd(inputImage);
                     if(bib != null){
                         MeanandStd(bib);
                     }
             case 17:
-                    biFiltered = SimpleThresholding(bi, scalingFactor);
+                    biFiltered = SimpleThresholding(inputImage, scalingFactor);
                     if(bib != null){
                         bibFiltered = SimpleThresholding(bib, scalingFactor);
                     }
@@ -1645,6 +1648,9 @@
                     scalingFactor = (int)source.getValue();
                 }
             }
+            if (e.getSource() instanceof JCheckBox){
+                toggle = !toggle;
+            }
         };
     
         public static void main(String s[]) {
@@ -1652,6 +1658,7 @@
             f.addWindowListener(new WindowAdapter() {
                 public void windowClosing(WindowEvent e) {System.exit(0);}
             });
+            // Add a checkbox to toggle between applying filters consecutively or starting fresh from the original image
             Demo de = new Demo();
             f.add("Center", de);
             JComboBox<String> choices = new JComboBox<>(de.getDescriptions());
@@ -1669,6 +1676,12 @@
             JButton addBottom = new JButton("Change Bottom image");
             addBottom.setActionCommand("Change Bottom image");
             addBottom.addActionListener(de);
+            JCheckBox applyConsecutivelyCheckbox = new JCheckBox("Apply Filters Consecutively", false);
+            applyConsecutivelyCheckbox.addItemListener(new ItemListener() {
+                public void itemStateChanged(ItemEvent e){
+                    toggle = !toggle;
+                }
+            });
             JPanel panel = new JPanel();
             panel.add(choices);
             panel.add(new JLabel("Save As"));
@@ -1676,6 +1689,7 @@
             panel.add(button);
             panel.add(addTop);
             panel.add(addBottom);   
+            panel.add(applyConsecutivelyCheckbox);
             f.add("North", panel);
             f.pack();
             f.setVisible(true);
