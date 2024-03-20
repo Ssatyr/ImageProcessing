@@ -680,66 +680,42 @@
         }
 
         public BufferedImage applyRobertsOperator(BufferedImage timg) {
-            int width = timg.getWidth();
-            int height = timg.getHeight();
-        
-            int[][][] ImageArray = convertToArray(timg); // Convert the image to array
-        
-            // Define the Roberts kernels
-            int[][] robertsKernelX = {
+            int[][] kernelX = {
                 {0, 0, 0},
                 {0, 0, -1},
                 {0, 1, 0}
             };
         
-            int[][] robertsKernelY = {
+            int[][] kernelY = {
                 {0, 0, 0},
                 {0, -1, 0},
                 {0, 0, 1}
             };
         
+            BufferedImage resultX = Convolution(timg, kernelX, 0);
+            BufferedImage resultY = Convolution(timg, kernelY, 0);
+        
+            int width = timg.getWidth();
+            int height = timg.getHeight();
+            int[][][] ImageArrayX = convertToArray(resultX);
+            int[][][] ImageArrayY = convertToArray(resultY);
+        
             int[][][] resultArray = new int[width][height][4];
         
-            // Apply the Roberts operator
-            for (int y = 0; y < height - 1; y++) {
-                for (int x = 0; x < width - 1; x++) {
-                    int sumRx = 0;
-                    int sumRy = 0;
-                    int sumGx = 0;
-                    int sumGy = 0;
-                    int sumBx = 0;
-                    int sumBy = 0;
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    int sumR = (int)Math.sqrt(Math.pow(ImageArrayX[x][y][1], 2) + Math.pow(ImageArrayY[x][y][1], 2));
+                    int sumG = (int)Math.sqrt(Math.pow(ImageArrayX[x][y][2], 2) + Math.pow(ImageArrayY[x][y][2], 2));
+                    int sumB = (int)Math.sqrt(Math.pow(ImageArrayX[x][y][3], 2) + Math.pow(ImageArrayY[x][y][3], 2));
         
-                    // Apply kernels to the image
-                    for (int ky = 0; ky < 2; ky++) {
-                        for (int kx = 0; kx < 2; kx++) {
-                            // Ensure we don't go out of bounds
-                            if ((x + kx < width) && (y + ky < height)) {
-                                int pixelR = ImageArray[x + kx][y + ky][1];
-                                int pixelG = ImageArray[x + kx][y + ky][2];
-                                int pixelB = ImageArray[x + kx][y + ky][3];
-                                sumRx += robertsKernelX[ky][kx] * pixelR;
-                                sumRy += robertsKernelY[ky][kx] * pixelR;
-                                sumGx += robertsKernelX[ky][kx] * pixelG;
-                                sumGy += robertsKernelY[ky][kx] * pixelG;
-                                sumBx += robertsKernelX[ky][kx] * pixelB;
-                                sumBy += robertsKernelY[ky][kx] * pixelB;
-                            }
-                        }
-                    }
-        
-                    int magnitudeR = (int)Math.sqrt(sumRx * sumRx + sumRy * sumRy);
-                    int magnitudeG = (int)Math.sqrt(sumGx * sumGx + sumGy * sumGy);
-                    int magnitudeB = (int)Math.sqrt(sumBx * sumBx + sumBy * sumBy);
-        
-                    resultArray[x][y][1] = Math.min(Math.abs(magnitudeR), 255);
-                    resultArray[x][y][2] = Math.min(Math.abs(magnitudeG), 255);
-                    resultArray[x][y][3] = Math.min(Math.abs(magnitudeB), 255);
+                    resultArray[x][y][1] = Math.min(sumR, 255);
+                    resultArray[x][y][2] = Math.min(sumG, 255);
+                    resultArray[x][y][3] = Math.min(sumB, 255);
                 }
             }
         
-            return convertToBimage(resultArray); 
-        }        
+            return convertToBimage(resultArray);
+        }
 
         public BufferedImage Convolutions5by5(BufferedImage timg, int[][] kernel){
             int width = timg.getWidth();
