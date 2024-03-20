@@ -285,9 +285,9 @@
 
             for(int y=0; y<height; y++){
                 for(int x =0; x<width; x++){
-                    ImageArray[x][y][1] = Math.max(Math.min(Math.round(ImageArray[x][y][1]  * ImageArray2[x][y][1]), 255), 0);  //r
-                    ImageArray[x][y][2] = Math.max(Math.min(Math.round(ImageArray[x][y][2]  * ImageArray2[x][y][2]), 255), 0);  //g
-                    ImageArray[x][y][3] = Math.max(Math.min(Math.round(ImageArray[x][y][3]  * ImageArray2[x][y][3]), 255), 0);  //b
+                    ImageArray[x][y][1] = Math.max(Math.min(Math.round(ImageArray[x][y][1]  * (ImageArray2[x][y][1] / 255)), 255), 0);  //r
+                    ImageArray[x][y][2] = Math.max(Math.min(Math.round(ImageArray[x][y][2]  * (ImageArray2[x][y][2] / 255)), 255), 0);  //g
+                    ImageArray[x][y][3] = Math.max(Math.min(Math.round(ImageArray[x][y][3]  * (ImageArray2[x][y][3] / 255)), 255), 0);  //b
                     // czy ma byc skalowane /255 czy po prostu mnożone?
                 }
             }
@@ -307,9 +307,9 @@
                     if (ImageArray2[x][y][1] == 0) ImageArray2[x][y][1] = 1;
                     if (ImageArray2[x][y][2] == 0) ImageArray2[x][y][2] = 1;
                     if (ImageArray2[x][y][3] == 0) ImageArray2[x][y][3] = 1;
-                    ImageArray[x][y][1] = Math.max(Math.min(Math.round(ImageArray[x][y][1]  / ImageArray2[x][y][1]), 255), 0);  //r
-                    ImageArray[x][y][2] = Math.max(Math.min(Math.round(ImageArray[x][y][2]  / ImageArray2[x][y][2]), 255), 0);  //g
-                    ImageArray[x][y][3] = Math.max(Math.min(Math.round(ImageArray[x][y][3]  / ImageArray2[x][y][3]), 255), 0);  //b
+                    ImageArray[x][y][1] = Math.max(Math.min(Math.round(ImageArray[x][y][1]  / (ImageArray2[x][y][1] / 255)), 255), 0);  //r
+                    ImageArray[x][y][2] = Math.max(Math.min(Math.round(ImageArray[x][y][2]  / (ImageArray2[x][y][2] / 255)), 255), 0);  //g
+                    ImageArray[x][y][3] = Math.max(Math.min(Math.round(ImageArray[x][y][3]  / (ImageArray2[x][y][3] / 255)), 255), 0);  //b
                 }
             }
             
@@ -620,7 +620,7 @@
         public BufferedImage Convolution(BufferedImage timg, int[][] kernel, int avg){
             int width = timg.getWidth();
             int height = timg.getHeight();
-
+            System.out.println(kernel[0][0] + ", " + kernel[0][1] + ", " + kernel[0][2]);
             int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
 
             int kernelSize = 3;
@@ -645,9 +645,9 @@
                             int pixelR = ImageArray[x + kx - 1][y + ky - 1][1];
                             int pixelG = ImageArray[x + kx - 1][y + ky - 1][2];
                             int pixelB = ImageArray[x + kx - 1][y + ky - 1][3];
-                            sumR += kernel[ky][kx] * pixelR;
-                            sumG += kernel[ky][kx] * pixelG;
-                            sumB += kernel[ky][kx] * pixelB;
+                            sumR += kernel[kernelSize - 1 - ky][kernelSize - 1 - kx] * pixelR;
+                            sumG += kernel[kernelSize - 1 - ky][kernelSize - 1 - kx] * pixelG;
+                            sumB += kernel[kernelSize - 1 - ky][kernelSize - 1 - kx] * pixelB;
                         }
                     }
                     
@@ -1149,6 +1149,7 @@
             JButton applyConvolution = new JButton("Apply Convolution");
             applyConvolution.addActionListener(e -> {
                 String operation = (String) operationList.getSelectedItem();
+                System.out.println("Operation: " + operation);  
                 switch (operation) {
                     case "Averaging":
                         int[][] kernel = {{1,1,1},{1,1,1},{1,1,1}};
@@ -1163,7 +1164,9 @@
                         if(bib != null){
                             bibFiltered = Convolution(bib, weightedKernel, 1);
                         }
+                        break;
                     case "4-n Laplacian":
+                        System.out.println("4-n Laplacian");
                         int[][] laplacian4 = {{0,-1,0},{-1,4,-1},{0,-1,0}};
                         biFiltered = Convolution(bi, laplacian4, 0);
                         if(bib != null){
