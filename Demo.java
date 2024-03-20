@@ -33,6 +33,7 @@
             "Filtering",
             "Mean & Standard Deviation",
             "Simple Thresholding",
+            "Automated Thresholding",
         };
 
         static JFrame f = new JFrame("Image Processing Demo");
@@ -54,6 +55,7 @@
         private int scalingFactor = 100; // Default scaling factor
         private static boolean toggle = false;
         private BufferedImage undo1;
+        private BufferedImage undo2;
         
         public Demo() {
             try {
@@ -1043,19 +1045,114 @@
             return convertToBimage(ImageArray);  
         }
 
-        
+        public BufferedImage AutomatedThresholding(BufferedImage timg){
+            int width = timg.getWidth();
+            int height = timg.getHeight();
 
+            int[][][] ImageArray = convertToArray(timg);          
+
+            int[] histogramR = new int[256];
+            int[] histogramG = new int[256];
+            int[] histogramB = new int[256];
+
+            // Finding Histogram
+            for(int y=0; y<height; y++){
+                for(int x =0; x<width; x++){
+                    histogramR[ImageArray[x][y][1]]++;  //r
+                    histogramG[ImageArray[x][y][2]]++;  //g
+                    histogramB[ImageArray[x][y][3]]++;  //b
+                }
+            }
+
+            int thresholdR = otsuThreshold(histogramR); 
+            int thresholdG = otsuThreshold(histogramG); 
+            int thresholdB = otsuThreshold(histogramB);
+
+            // Automated Thresholding
+            for(int y=0; y<height; y++){
+                for(int x =0; x<width; x++){
+                    if(ImageArray[x][y][1] > thresholdR){
+                        ImageArray[x][y][1] = 255;  //r
+                    } else {
+                        ImageArray[x][y][1] = 0;  //r
+                    }
+                    if(ImageArray[x][y][2] > thresholdG){
+                        ImageArray[x][y][2] = 255;  //g
+                    } else {
+                        ImageArray[x][y][2] = 0;  //g
+                    }
+                    if(ImageArray[x][y][3] > thresholdB){
+                        ImageArray[x][y][3] = 255;  //b
+                    } else {
+                        ImageArray[x][y][3] = 0;  //b
+                    }
+                }
+            }
+            
+            return convertToBimage(ImageArray);  
+        }
+
+        public int otsuThreshold(int[] histogram) { 
+            int total = 0;
+            for (int i = 0; i < histogram.length; i++) {
+                total += histogram[i];
+            }
+        
+            float sum = 0;
+            for (int i = 0; i < histogram.length; i++) {
+                sum += i * histogram[i];
+            }
+        
+            float sumB = 0; // Sum Background
+            int wB = 0; // Weight Background
+            int wF = 0; // Weight Foreground
+        
+            float varMax = 0;
+            int threshold = 0;
+        
+            for (int i = 0; i < histogram.length; i++) {
+                wB += histogram[i]; 
+                if (wB == 0) {
+                    continue;
+                }
+                wF = total - wB;
+        
+                if (wF == 0) {
+                    break;
+                }
+                sumB += (float) (i * histogram[i]);
+                float mB = sumB / wB;
+                float mF = (sum - sumB) / wF;
+                float varBetween = (float) wB * (float) wF * (mB - mF) * (mB - mF);
+        
+                if (varBetween > varMax) {
+                    varMax = varBetween;
+                    threshold = i;
+                }
+            }
+        
+            return threshold;
+        }
+
+    
         //************************************
         //  You need to register your functioin here
         //************************************
         public void filterImage() {
             
-            undo1 = biFiltered;
-            if (opIndex == lastOp) {
+            if (opIndex != 15 && opIndex != 13) {
+                undo1 = biFiltered;
+                if (bib != null) {
+                    undo2 = bibFiltered;
+                }
+            }
+            
+            if (opIndex == lastOp && toggle == false) {
                 return;
             }
 
             BufferedImage inputImage = toggle ? biFiltered : bi;
+            BufferedImage inputImageB = toggle ? bibFiltered : bib;
 
             uno_reverse_card = lastOp;
             lastOp = opIndex;
@@ -1066,78 +1163,85 @@
                     return; 
             case 1: biFiltered = ImageNegative(inputImage); /* Image Negative */
                     if(bib != null){
-                        bibFiltered = ImageNegative(bib);
+                        bibFiltered = ImageNegative(inputImageB);
                     }
                     return;
             case 2: 
                     biFiltered = ReScaleImage(inputImage, scalingFactor); /* Image Rescaling */
                     if(bib != null){
-                        bibFiltered = ReScaleImage(bib, scalingFactor);
+                        bibFiltered = ReScaleImage(inputImageB, scalingFactor);
                     }
                     return;
             case 3: 
                     biFiltered = Shift(inputImage, scalingFactor);
                     if(bib != null){
-                        bibFiltered = Shift(bib, scalingFactor);
+                        bibFiltered = Shift(inputImageB, scalingFactor);
                     }
                     return;
             case 4:
                     biFiltered = RandomShift(inputImage);
                     if(bib != null){
-                        bibFiltered = RandomShift(bib);
+                        bibFiltered = RandomShift(inputImageB);
                     }
                     return;
             case 6:
                     biFiltered = BitwiseNOT(inputImage);
                     if(bib != null){
-                        bibFiltered = BitwiseNOT(bib);
+                        bibFiltered = BitwiseNOT(inputImageB);
                     }
                     return;
             case 8:
                     biFiltered = LogFunction(inputImage);
                     if(bib != null){
-                        bibFiltered = LogFunction(bib);
+                        bibFiltered = LogFunction(inputImageB);
                     }
                     return;
             case 9:
                     biFiltered = PowerLow(inputImage, scalingFactor);
                     if(bib != null){
-                        bibFiltered = PowerLow(inputImage, scalingFactor);
+                        bibFiltered = PowerLow(inputImageB, scalingFactor);
                     }
                     return;
             case 10:
                     biFiltered = RandomLookUpTable(inputImage);
                     if(bib != null){
-                        bibFiltered = RandomLookUpTable(bib);
+                        bibFiltered = RandomLookUpTable(inputImageB);
                     }
                     return;
             case 11:
                     biFiltered = BitPlaneSlice(inputImage, scalingFactor);
                     if(bib != null){
-                        bibFiltered = BitPlaneSlice(bib, scalingFactor);
+                        bibFiltered = BitPlaneSlice(inputImageB, scalingFactor);
                     }
                     return;
             case 12:
                     biFiltered = FindingHistogram(inputImage);
                     if(bib != null){
-                        bibFiltered = FindingHistogram(bib);
+                        bibFiltered = FindingHistogram(inputImageB);
                     }
                     return;
             case 14:
                     biFiltered = SaltandPepper(inputImage);
                     if(bib != null){
-                        bibFiltered = SaltandPepper(bib);
+                        bibFiltered = SaltandPepper(inputImageB);
                     }
                     return;
             case 16:
                     MeanandStd(inputImage);
                     if(bib != null){
-                        MeanandStd(bib);
+                        MeanandStd(inputImageB);
                     }
+                    return;
             case 17:
                     biFiltered = SimpleThresholding(inputImage, scalingFactor);
                     if(bib != null){
-                        bibFiltered = SimpleThresholding(bib, scalingFactor);
+                        bibFiltered = SimpleThresholding(inputImageB, scalingFactor);
+                    }
+                    return;
+            case 18:
+                    biFiltered = AutomatedThresholding(inputImage);
+                    if(bib != null){
+                        bibFiltered = AutomatedThresholding(inputImageB);
                     }
                     return;
             }
@@ -1156,20 +1260,24 @@
                 String operation = (String) operationList.getSelectedItem();
                 System.out.println("Operation: " + operation);  
                 BufferedImage inputImage = toggle ? biFiltered : bi;
+                BufferedImage inputImageB = toggle ? bibFiltered : bib;
                 undo1 = biFiltered;
+                if(bib != null){
+                    undo2 = bibFiltered;
+                }
                 switch (operation) {
                     case "Averaging":
                         int[][] kernel = {{1,1,1},{1,1,1},{1,1,1}};
                         biFiltered = Convolution(inputImage, kernel, 1);
                         if(bib != null){
-                            bibFiltered = Convolution(bib, kernel, 1);
+                            bibFiltered = Convolution(inputImageB, kernel, 1);
                         }
                         break;
                     case "Weighted Averaging":
                         int[][] weightedKernel = {{1,2,1},{2,4,2},{1,2,1}};
                         biFiltered = Convolution(inputImage, weightedKernel, 1);
                         if(bib != null){
-                            bibFiltered = Convolution(bib, weightedKernel, 1);
+                            bibFiltered = Convolution(inputImageB, weightedKernel, 1);
                         }
                         break;
                     case "4-n Laplacian":
@@ -1177,62 +1285,62 @@
                         int[][] laplacian4 = {{0,-1,0},{-1,4,-1},{0,-1,0}};
                         biFiltered = Convolution(inputImage, laplacian4, 0);
                         if(bib != null){
-                            bibFiltered = Convolution(bib, laplacian4, 0);
+                            bibFiltered = Convolution(inputImageB, laplacian4, 0);
                         }
                         break; 
                     case "8-n Laplacian":
                         int[][] laplacian8 = {{-1,-1,-1},{-1,8,-1},{-1,-1,-1}};
                         biFiltered = Convolution(inputImage, laplacian8, 0);
                         if(bib != null){
-                            bibFiltered = Convolution(bib, laplacian8, 0);
+                            bibFiltered = Convolution(inputImageB, laplacian8, 0);
                         }
                         break;
                     case "4-n Laplacian Enhanced":
                         int[][] laplacian4Enhanced = {{0,-1,0},{-1,5,-1},{0,-1,0}};
                         biFiltered = Convolution(inputImage, laplacian4Enhanced, 0);
                         if(bib != null){
-                            bibFiltered = Convolution(bib, laplacian4Enhanced, 0);
+                            bibFiltered = Convolution(inputImageB, laplacian4Enhanced, 0);
                         }
                         break;
                     case "8-n Laplacian Enhanced":
                         int[][] laplacian8Enhanced = {{-1,-1,-1},{-1,9,-1},{-1,-1,-1}};
                         biFiltered = Convolution(inputImage, laplacian8Enhanced, 0);
                         if(bib != null){
-                            bibFiltered = Convolution(bib, laplacian8Enhanced, 0);
+                            bibFiltered = Convolution(inputImageB, laplacian8Enhanced, 0);
                         }
                         break;
                     case "Roberts":
                         biFiltered = applyRobertsOperator(inputImage);
                         if(bib != null){
-                            bibFiltered = applyRobertsOperator(bib);
+                            bibFiltered = applyRobertsOperator(inputImageB);
                         }
                         break;
                     case "Sobel X":
                         int[][] sobelX = {{-1,0,1},{-2,0,2},{-1,0,1}};
                         biFiltered = Convolution(inputImage, sobelX, 0);
                         if(bib != null){
-                            bibFiltered = Convolution(bib, sobelX, 0);
+                            bibFiltered = Convolution(inputImageB, sobelX, 0);
                         }     
                         break;
                     case "Sobel Y":
                         int[][] sobelY = {{-1,-2,-1},{0,0,0},{1,2,1}};
                         biFiltered = Convolution(inputImage, sobelY, 0);
                         if(bib != null){
-                            bibFiltered = Convolution(bib, sobelY, 0);
+                            bibFiltered = Convolution(inputImageB, sobelY, 0);
                         }
                         break;
                     case "Gaussian":
                         int [][] gaussian = {{1, 4, 7, 4, 1}, {4, 16, 26, 16, 4}, {7, 26, 41, 26, 7}, {4, 16, 26, 16, 4}, {1, 4, 7, 4, 1}};
                         biFiltered = Convolutions5by5(inputImage, gaussian);
                         if(bib != null){
-                            bibFiltered = Convolutions5by5(bib, gaussian);
+                            bibFiltered = Convolutions5by5(inputImageB, gaussian);
                         }
                         break;
                     case "LaPlacian of Gaussian":
                         int [][] laplacianOfGaussian = {{0, 0, -1, 0, 0}, {0, -1, -2, -1, 0}, {-1, -2, 16, -2, -1}, {0, -1, -2, -1, 0}, {0, 0, -1, 0, 0}};
                         biFiltered = Convolutions5by5(inputImage, laplacianOfGaussian);
                         if(bib != null){
-                            bibFiltered = Convolutions5by5(bib, laplacianOfGaussian);
+                            bibFiltered = Convolutions5by5(inputImageB, laplacianOfGaussian);
                         }
                         break;
                 }
@@ -1256,30 +1364,34 @@
             applyConvolution.addActionListener(e -> {
                 String operation = (String) operationList.getSelectedItem();
                 BufferedImage inputImage = toggle ? biFiltered : bi;
+                BufferedImage inputImageB = toggle ? bibFiltered : bib;
                 undo1 = biFiltered;
+                if(bib != null){
+                    undo2 = bibFiltered;
+                }
                 switch (operation) {
                     case "Min Filter":
                         biFiltered = MinFilter(inputImage);
                         if(bib != null){
-                            bibFiltered = MinFilter(bib);
+                            bibFiltered = MinFilter(inputImageB);
                         }
                         break;
                     case "Max Filter":
                         biFiltered = MaxFilter(inputImage);
                         if(bib != null){
-                            bibFiltered = MaxFilter(bib);
+                            bibFiltered = MaxFilter(inputImageB);
                         }
                         break;
                     case "Median Filter":
                         biFiltered = MedianFilter(inputImage);
                         if(bib != null){
-                            bibFiltered = MedianFilter(bib);
+                            bibFiltered = MedianFilter(inputImageB);
                         }
                         break;
                     case "Midpoint Filter":
                         biFiltered = MidpointFilter(inputImage);
                         if(bib != null){
-                            bibFiltered = MidpointFilter(bib);
+                            bibFiltered = MidpointFilter(inputImageB);
                         }
                         break;
                 }
@@ -1529,6 +1641,7 @@
             if(e.getSource() instanceof JButton){
                 if(e.getActionCommand().equals("Undo")){
                     biFiltered = undo1;
+                    bibFiltered = undo2;
                     repaint();
                     return;
                 } else if (e.getActionCommand().equals("Change Top image")){
