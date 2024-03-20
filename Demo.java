@@ -53,6 +53,7 @@
         private JLabel sliderValueLabel; // Label to display slider value
         private int scalingFactor = 100; // Default scaling factor
         private static boolean toggle = false;
+        private BufferedImage undo1;
         
         public Demo() {
             try {
@@ -1048,7 +1049,8 @@
         //  You need to register your functioin here
         //************************************
         public void filterImage() {
-    
+            
+            undo1 = biFiltered;
             if (opIndex == lastOp) {
                 return;
             }
@@ -1068,7 +1070,7 @@
                     }
                     return;
             case 2: 
-                    biFiltered = ReScaleImage(bi, scalingFactor); /* Image Rescaling */
+                    biFiltered = ReScaleImage(inputImage, scalingFactor); /* Image Rescaling */
                     if(bib != null){
                         bibFiltered = ReScaleImage(bib, scalingFactor);
                     }
@@ -1153,17 +1155,19 @@
             applyConvolution.addActionListener(e -> {
                 String operation = (String) operationList.getSelectedItem();
                 System.out.println("Operation: " + operation);  
+                BufferedImage inputImage = toggle ? biFiltered : bi;
+                undo1 = biFiltered;
                 switch (operation) {
                     case "Averaging":
                         int[][] kernel = {{1,1,1},{1,1,1},{1,1,1}};
-                        biFiltered = Convolution(bi, kernel, 1);
+                        biFiltered = Convolution(inputImage, kernel, 1);
                         if(bib != null){
                             bibFiltered = Convolution(bib, kernel, 1);
                         }
                         break;
                     case "Weighted Averaging":
                         int[][] weightedKernel = {{1,2,1},{2,4,2},{1,2,1}};
-                        biFiltered = Convolution(bi, weightedKernel, 1);
+                        biFiltered = Convolution(inputImage, weightedKernel, 1);
                         if(bib != null){
                             bibFiltered = Convolution(bib, weightedKernel, 1);
                         }
@@ -1171,62 +1175,62 @@
                     case "4-n Laplacian":
                         System.out.println("4-n Laplacian");
                         int[][] laplacian4 = {{0,-1,0},{-1,4,-1},{0,-1,0}};
-                        biFiltered = Convolution(bi, laplacian4, 0);
+                        biFiltered = Convolution(inputImage, laplacian4, 0);
                         if(bib != null){
                             bibFiltered = Convolution(bib, laplacian4, 0);
                         }
                         break; 
                     case "8-n Laplacian":
                         int[][] laplacian8 = {{-1,-1,-1},{-1,8,-1},{-1,-1,-1}};
-                        biFiltered = Convolution(bi, laplacian8, 0);
+                        biFiltered = Convolution(inputImage, laplacian8, 0);
                         if(bib != null){
                             bibFiltered = Convolution(bib, laplacian8, 0);
                         }
                         break;
                     case "4-n Laplacian Enhanced":
                         int[][] laplacian4Enhanced = {{0,-1,0},{-1,5,-1},{0,-1,0}};
-                        biFiltered = Convolution(bi, laplacian4Enhanced, 0);
+                        biFiltered = Convolution(inputImage, laplacian4Enhanced, 0);
                         if(bib != null){
                             bibFiltered = Convolution(bib, laplacian4Enhanced, 0);
                         }
                         break;
                     case "8-n Laplacian Enhanced":
                         int[][] laplacian8Enhanced = {{-1,-1,-1},{-1,9,-1},{-1,-1,-1}};
-                        biFiltered = Convolution(bi, laplacian8Enhanced, 0);
+                        biFiltered = Convolution(inputImage, laplacian8Enhanced, 0);
                         if(bib != null){
                             bibFiltered = Convolution(bib, laplacian8Enhanced, 0);
                         }
                         break;
                     case "Roberts":
-                        biFiltered = applyRobertsOperator(bi);
+                        biFiltered = applyRobertsOperator(inputImage);
                         if(bib != null){
                             bibFiltered = applyRobertsOperator(bib);
                         }
                         break;
                     case "Sobel X":
                         int[][] sobelX = {{-1,0,1},{-2,0,2},{-1,0,1}};
-                        biFiltered = Convolution(bi, sobelX, 0);
+                        biFiltered = Convolution(inputImage, sobelX, 0);
                         if(bib != null){
                             bibFiltered = Convolution(bib, sobelX, 0);
                         }     
                         break;
                     case "Sobel Y":
                         int[][] sobelY = {{-1,-2,-1},{0,0,0},{1,2,1}};
-                        biFiltered = Convolution(bi, sobelY, 0);
+                        biFiltered = Convolution(inputImage, sobelY, 0);
                         if(bib != null){
                             bibFiltered = Convolution(bib, sobelY, 0);
                         }
                         break;
                     case "Gaussian":
                         int [][] gaussian = {{1, 4, 7, 4, 1}, {4, 16, 26, 16, 4}, {7, 26, 41, 26, 7}, {4, 16, 26, 16, 4}, {1, 4, 7, 4, 1}};
-                        biFiltered = Convolutions5by5(bi, gaussian);
+                        biFiltered = Convolutions5by5(inputImage, gaussian);
                         if(bib != null){
                             bibFiltered = Convolutions5by5(bib, gaussian);
                         }
                         break;
                     case "LaPlacian of Gaussian":
                         int [][] laplacianOfGaussian = {{0, 0, -1, 0, 0}, {0, -1, -2, -1, 0}, {-1, -2, 16, -2, -1}, {0, -1, -2, -1, 0}, {0, 0, -1, 0, 0}};
-                        biFiltered = Convolutions5by5(bi, laplacianOfGaussian);
+                        biFiltered = Convolutions5by5(inputImage, laplacianOfGaussian);
                         if(bib != null){
                             bibFiltered = Convolutions5by5(bib, laplacianOfGaussian);
                         }
@@ -1251,27 +1255,29 @@
             JButton applyConvolution = new JButton("Apply Filter");
             applyConvolution.addActionListener(e -> {
                 String operation = (String) operationList.getSelectedItem();
+                BufferedImage inputImage = toggle ? biFiltered : bi;
+                undo1 = biFiltered;
                 switch (operation) {
                     case "Min Filter":
-                        biFiltered = MinFilter(bi);
+                        biFiltered = MinFilter(inputImage);
                         if(bib != null){
                             bibFiltered = MinFilter(bib);
                         }
                         break;
                     case "Max Filter":
-                        biFiltered = MaxFilter(bi);
+                        biFiltered = MaxFilter(inputImage);
                         if(bib != null){
                             bibFiltered = MaxFilter(bib);
                         }
                         break;
                     case "Median Filter":
-                        biFiltered = MedianFilter(bi);
+                        biFiltered = MedianFilter(inputImage);
                         if(bib != null){
                             bibFiltered = MedianFilter(bib);
                         }
                         break;
                     case "Midpoint Filter":
-                        biFiltered = MidpointFilter(bi);
+                        biFiltered = MidpointFilter(inputImage);
                         if(bib != null){
                             bibFiltered = MidpointFilter(bib);
                         }
@@ -1522,7 +1528,7 @@
 
             if(e.getSource() instanceof JButton){
                 if(e.getActionCommand().equals("Undo")){
-                    setOpIndex(uno_reverse_card);
+                    biFiltered = undo1;
                     repaint();
                     return;
                 } else if (e.getActionCommand().equals("Change Top image")){
