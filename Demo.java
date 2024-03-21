@@ -34,6 +34,7 @@ public class Demo extends Component implements ActionListener {
         "Mean & Standard Deviation",
         "Simple Thresholding",
         "Automated Thresholding",
+        "Convert to Grayscale",
     };
 
     static JFrame f = new JFrame("Image Processing Demo");
@@ -1111,6 +1112,25 @@ public class Demo extends Component implements ActionListener {
         return threshold;
     }
 
+    public BufferedImage ConvertToGrayScale(BufferedImage timg){
+        int width = timg.getWidth();
+        int height = timg.getHeight();
+
+        int[][][] ImageArray = convertToArray(timg);          //  Convert the image to array
+
+        // Convert to GrayScale
+        for(int y=0; y<height; y++){
+            for(int x =0; x<width; x++){
+                int avg = (ImageArray[x][y][1] + ImageArray[x][y][2] + ImageArray[x][y][3]) / 3;
+                ImageArray[x][y][1] = avg;  //r
+                ImageArray[x][y][2] = avg;  //g
+                ImageArray[x][y][3] = avg;  //b
+            }
+        }
+
+        return convertToBimage(ImageArray);  // Convert the array to BufferedImage
+    }
+
 
     //************************************
     //  You need to register your functioin here
@@ -1219,6 +1239,12 @@ public class Demo extends Component implements ActionListener {
                 biFiltered = AutomatedThresholding(inputImage);
                 if(bib != null){
                     bibFiltered = AutomatedThresholding(inputImageB);
+                }
+                return;
+        case 19:
+                biFiltered = ConvertToGrayScale(inputImage);
+                if(bib != null){
+                    bibFiltered = ConvertToGrayScale(inputImageB);
                 }
                 return;
         }
