@@ -1,4 +1,5 @@
 import java.io.*;
+import java.nio.Buffer;
 import java.util.TreeSet;
 import java.util.Arrays;
 import java.awt.*;
@@ -37,7 +38,7 @@ public class Demo extends Component implements ActionListener {
         "Convert to Grayscale",
     };
 
-    static JFrame f = new JFrame("Image Processing Demo");
+    static JFrame f = new JFrame("Image Processing");
 
     int opIndex;  //option index for 
     int lastOp;
@@ -55,6 +56,8 @@ public class Demo extends Component implements ActionListener {
     private JLabel sliderValueLabel; // Label to display slider value
     private int scalingFactor = 100; // Default scaling factor
     private static boolean toggle = false;
+    private boolean isROI = false;
+    private BufferedImage ROIImage;
     private BufferedImage undo1;
     private BufferedImage undo2;
     
@@ -246,6 +249,10 @@ public class Demo extends Component implements ActionListener {
     }
 
     public BufferedImage Addition(BufferedImage timg, BufferedImage timg2){
+        if (timg.getWidth() != timg2.getWidth() || timg.getHeight() != timg2.getHeight()) {
+            System.out.println("Images must be the same size");
+            return timg;
+        }
         int width = timg.getWidth();
         int height = timg.getHeight();
 
@@ -265,6 +272,10 @@ public class Demo extends Component implements ActionListener {
     }
 
     public BufferedImage Subtraction(BufferedImage timg, BufferedImage timg2){
+        if (timg.getWidth() != timg2.getWidth() || timg.getHeight() != timg2.getHeight()) {
+            System.out.println("Images must be the same size");
+            return timg;
+        }
         int width = timg.getWidth();
         int height = timg.getHeight();
 
@@ -283,6 +294,10 @@ public class Demo extends Component implements ActionListener {
     }
 
     public BufferedImage Multiplication(BufferedImage timg, BufferedImage timg2){
+        if (timg.getWidth() != timg2.getWidth() || timg.getHeight() != timg2.getHeight()) {
+            System.out.println("Images must be the same size");
+            return timg;
+        }
         int width = timg.getWidth();
         int height = timg.getHeight();
 
@@ -302,6 +317,10 @@ public class Demo extends Component implements ActionListener {
     }
 
     public BufferedImage Dividing(BufferedImage timg, BufferedImage timg2){
+        if (timg.getWidth() != timg2.getWidth() || timg.getHeight() != timg2.getHeight()) {
+            System.out.println("Images must be the same size");
+            return timg;
+        }
         int width = timg.getWidth();
         int height = timg.getHeight();
 
@@ -349,6 +368,10 @@ public class Demo extends Component implements ActionListener {
     }
 
     public BufferedImage BitwiseAND(BufferedImage timg, BufferedImage timg2){
+        if (timg.getWidth() != timg2.getWidth() || timg.getHeight() != timg2.getHeight()) {
+            System.out.println("Images must be the same size");
+            return timg;
+        }
         int width = timg.getWidth();
         int height = timg.getHeight();
 
@@ -368,6 +391,10 @@ public class Demo extends Component implements ActionListener {
     }
 
     public BufferedImage BitwiseOR(BufferedImage timg, BufferedImage timg2){
+        if (timg.getWidth() != timg2.getWidth() || timg.getHeight() != timg2.getHeight()) {
+            System.out.println("Images must be the same size");
+            return timg;
+        }
         int width = timg.getWidth();
         int height = timg.getHeight();
 
@@ -387,6 +414,10 @@ public class Demo extends Component implements ActionListener {
     }
 
     public BufferedImage BitwiseXOR(BufferedImage timg, BufferedImage timg2){
+        if (timg.getWidth() != timg2.getWidth() || timg.getHeight() != timg2.getHeight()) {
+            System.out.println("Images must be the same size");
+            return timg;
+        }
         int width = timg.getWidth();
         int height = timg.getHeight();
 
@@ -406,7 +437,13 @@ public class Demo extends Component implements ActionListener {
     }
 
     public BufferedImage applyROI(BufferedImage targetImg, BufferedImage maskImg) {
+        if (targetImg.getWidth() != maskImg.getWidth() || targetImg.getHeight() != maskImg.getHeight()) {
+            System.out.println("Images must be the same size");
+            return targetImg;
+        }
         // Assuming both images are the same size
+        ROIImage = maskImg;
+        isROI = true;
         int width = targetImg.getWidth();
         int height = targetImg.getHeight();
     
@@ -578,6 +615,10 @@ public class Demo extends Component implements ActionListener {
             }
         }
 
+        System.out.println("Histogram R: " + Arrays.toString(histogramR));
+        System.out.println("Histogram G: " + Arrays.toString(histogramG));
+        System.out.println("Histogram B: " + Arrays.toString(histogramB));
+
         int[] cdfR = computeCDF(histogramR);
         int[] cdfG = computeCDF(histogramG);
         int[] cdfB = computeCDF(histogramB);
@@ -589,6 +630,10 @@ public class Demo extends Component implements ActionListener {
             histogramB[i] = (int)(255 * (histogramB[i] / (double)(w * h)));
         }
 
+        System.out.println("Normalized Histogram R: " + Arrays.toString(histogramR));
+        System.out.println("Normalized Histogram G: " + Arrays.toString(histogramG));
+        System.out.println("Normalized Histogram B: " + Arrays.toString(histogramB));
+
         //Equalisation
         for(int y=0; y<height; y++){
             for(int x =0; x<width; x++){
@@ -597,6 +642,10 @@ public class Demo extends Component implements ActionListener {
                 ImageArray[x][y][3] = cdfB[ImageArray[x][y][3]];  //b
             }
         }
+
+        System.out.println("Equalized Histogram R: " + Arrays.toString(histogramR));
+        System.out.println("Equalized Histogram G: " + Arrays.toString(histogramG));
+        System.out.println("Equalized Histogram B: " + Arrays.toString(histogramB));
 
         return convertToBimage(ImageArray);  // Convert the array to BufferedImage
     }
@@ -1157,6 +1206,7 @@ public class Demo extends Component implements ActionListener {
         switch (opIndex) {
         case 0: biFiltered = bi; /* original */
                 bibFiltered = bib;
+                isROI = false;
                 return; 
         case 1: biFiltered = ImageNegative(inputImage); /* Image Negative */
                 if(bib != null){
@@ -1247,6 +1297,12 @@ public class Demo extends Component implements ActionListener {
                     bibFiltered = ConvertToGrayScale(inputImageB);
                 }
                 return;
+        }
+        if(isROI && toggle){
+            biFiltered = applyROI(biFiltered, ROIImage);
+            if(bib != null){
+                bibFiltered = applyROI(bibFiltered, ROIImage);
+            }
         }
     }
 
@@ -1628,7 +1684,12 @@ public class Demo extends Component implements ActionListener {
             BitwiseDialog.dispose();
 
             // Open a new window to display the finalbiba image
-            displayFinalImage(finalbiba);
+            if (operation.equals("ROI")){
+                biFiltered = finalbiba;
+                repaint();
+            } else {
+                displayFinalImage(finalbiba);
+            }
         });
 
         BitwiseDialog.add(chooseFirst);
